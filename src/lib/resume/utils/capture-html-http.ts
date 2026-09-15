@@ -1,10 +1,13 @@
 import http from "node:http";
+import { resumeIdFromJob } from "./from-job-listing";
 import {
   jobUrlsFromHtml,
   listingFromHtml,
   listingLooksLikeAJob,
 } from "./listing-from-html";
-import { writeCapturedListing } from "./write-scraped";
+import { missingStrategyMessage, strategyForUrl } from "./strategy";
+import { runResumePdf } from "./run-resume-pdf";
+import { saveCapturedHtml, writeCapturedListing } from "../write-scraped";
 
 const MAX_HTML_CHARS = 8_000_000;
 const DEFAULT_PORT = 3001;
@@ -49,9 +52,15 @@ function readBody(request: http.IncomingMessage, limit: number) {
   });
 }
 
-export async function handleCapturePayload(payload: unknown) {
+type CaptureInput = {
+  url: string;
+  html: string;
+  searchUrl?: string;
+};
+
+function validateCapturePayload(payload: unknown) {
   if (!payload || typeof payload !== "object") {
-    return { status: 400, body: { error: "Expected JSON object" } };
+    return { ok: false as const, status: 400, body: { error: "Expected JSON object" } };
   }
 
   const record = payload as Record<string, unknown>;
@@ -61,26 +70,55 @@ export async function handleCapturePayload(payload: unknown) {
     typeof record.searchUrl === "string" ? record.searchUrl.trim() : undefined;
 
   if (!url) {
-    return { status: 400, body: { error: "url is required" } };
+    return { ok: false as const, status: 400, body: { error: "url is required" } };
   }
   try {
     new URL(url);
   } catch {
-    return { status: 400, body: { error: "url must be a valid URL" } };
+    return { ok: false as const, status: 400, body: { error: "url must be a valid URL" } };
   }
   if (!html.trim()) {
-    return { status: 400, body: { error: "html is required" } };
+    return { ok: false as const, status: 400, body: { error: "html is required" } };
   }
   if (html.length > MAX_HTML_CHARS) {
-    return { status: 413, body: { error: "html is too large" } };
+    return { ok: false as const, status: 413, body: { error: "html is too large" } };
+  }
+
+  return { ok: true as const, input: { url, html, searchUrl } };
+}
+
+function acceptedCaptureBody(input: CaptureInput) {
+  return {
+    ok: true,
+    loading: true,
+    message: "loading",
+    url: input.url,
+    id: resumeIdFromJob({ url: input.url, skills: [] }),
+  };
+}
+
+async function runCapture(input: CaptureInput) {
+  const { url, html, searchUrl } = input;
+
+  if (!strategyForUrl(url)) {
+    await saveCapturedHtml({
+      html,
+      listing: { url, searchUrl, skills: [] },
+      discoveredUrls: [url],
+    });
+    console.warn(missingStrategyMessage(url));
+    return;
   }
 
   const listing = listingFromHtml(html, url, searchUrl);
   if (!listingLooksLikeAJob(listing)) {
-    return {
-      status: 422,
-      body: { error: "HTML did not look like a job listing", url: listing.url },
-    };
+    await saveCapturedHtml({
+      html,
+      listing,
+      discoveredUrls: jobUrlsFromHtml(html, url),
+    });
+    console.warn("HTML did not look like a job listing", listing.url);
+    return;
   }
 
   const written = await writeCapturedListing({
@@ -88,7 +126,24 @@ export async function handleCapturePayload(payload: unknown) {
     listing,
     discoveredUrls: jobUrlsFromHtml(html, url),
   });
-  return { status: 200, body: { ok: true, ...written } };
+  await runResumePdf(written.id).catch((error: unknown) => {
+    console.error(
+      "Capture PDF failed",
+      error instanceof Error ? error.message : error,
+    );
+  });
+}
+
+export function handleCapturePayload(payload: unknown) {
+  const validated = validateCapturePayload(payload);
+  if (!validated.ok) {
+    return { status: validated.status, body: validated.body };
+  }
+  return {
+    status: 202,
+    body: acceptedCaptureBody(validated.input),
+    work: () => runCapture(validated.input),
+  };
 }
 
 async function handleCapture(request: http.IncomingMessage) {
@@ -143,6 +198,14 @@ export function startCaptureHtmlServer(
     try {
       const result = await handleCapture(request);
       sendJson(response, result.status, result.body);
+      if (result.work) {
+        void result.work().catch((error: unknown) => {
+          console.error(
+            "Capture failed",
+            error instanceof Error ? error.message : error,
+          );
+        });
+      }
     } catch (error) {
       sendJson(response, 500, {
         error: error instanceof Error ? error.message : "Capture failed",

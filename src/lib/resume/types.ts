@@ -4,6 +4,8 @@ export type WorkExperience = {
   from: Date;
   to: Date;
   skills: Array<string>;
+  /** Skills from this job that also appear in the listing. */
+  matchedSkills?: Array<string>;
   bulletpoints: Array<string>;
   url?: string;
 };
@@ -41,4 +43,10 @@ export type ResumeDocument = ResumeOptions & {
   sourceUrl?: string;
   /** Search/results page the listing was scraped from. */
   searchUrl?: string;
+  /** ISO datetime the listing was captured or last processed. */
+  processedAt?: string;
+  /** Hiring company from the listing. Tables only — not shown on the resume. */
+  company?: string;
+  /** Listing-matched skills for the top Skills section. */
+  skills?: Array<string>;
 };

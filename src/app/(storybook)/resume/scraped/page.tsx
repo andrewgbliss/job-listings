@@ -1,5 +1,5 @@
-import { allResumesHref, defaultScrapedFolderPath, scrapedFolderHref } from "@/lib/resume";
-import { listScrapedFolder } from "@/lib/resume/scraped-folder";
+import { allResumesHref, defaultScrapedFolderPath, formatProcessedAt, scrapedFolderHref } from "@/lib/resume";
+import { listScrapedFolder } from "@/lib/resume/utils/scraped-folder";
 import { website } from "@/lib/website";
 import {
   Table,
@@ -84,11 +84,13 @@ export default async function ScrapedFolderPage() {
             <Table className="table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[16%] text-zinc-700">Domain</TableHead>
-                  <TableHead className="w-[18%] text-zinc-700">Scrape</TableHead>
-                  <TableHead className="w-[16%] text-zinc-700">Title</TableHead>
-                  <TableHead className="w-[24%] text-zinc-700">Listing</TableHead>
-                  <TableHead className="w-[18%] text-zinc-700">Files</TableHead>
+                  <TableHead className="w-[12%] text-zinc-700">Date</TableHead>
+                  <TableHead className="w-[12%] text-zinc-700">Domain</TableHead>
+                  <TableHead className="w-[14%] text-zinc-700">Scrape</TableHead>
+                  <TableHead className="w-[14%] text-zinc-700">Company</TableHead>
+                  <TableHead className="w-[14%] text-zinc-700">Title</TableHead>
+                  <TableHead className="w-[16%] text-zinc-700">Listing</TableHead>
+                  <TableHead className="w-[10%] text-zinc-700">Files</TableHead>
                   <TableHead className="w-[8%] text-right text-zinc-700">Open</TableHead>
                 </TableRow>
               </TableHeader>
@@ -99,6 +101,9 @@ export default async function ScrapedFolderPage() {
                     : undefined;
                   return (
                     <TableRow key={scrape.relativePath}>
+                      <TableCell className="tabular-nums text-zinc-700">
+                        {formatProcessedAt(scrape.processedAt ?? scrape.dateFolder)}
+                      </TableCell>
                       <TableCell
                         title={scrape.domain}
                         className="max-w-0 truncate text-zinc-700"
@@ -119,6 +124,12 @@ export default async function ScrapedFolderPage() {
                             {scrape.id}
                           </span>
                         )}
+                      </TableCell>
+                      <TableCell
+                        title={scrape.company}
+                        className="max-w-0 truncate text-zinc-700"
+                      >
+                        {scrape.company || "—"}
                       </TableCell>
                       <TableCell
                         title={scrape.title ?? undefined}

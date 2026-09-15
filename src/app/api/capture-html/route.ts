@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import { handleCapturePayload } from "@/lib/resume/capture-html-http";
+import { after, NextResponse } from "next/server";
+import { handleCapturePayload } from "@/lib/resume/utils/capture-html-http";
 
 export const runtime = "nodejs";
+export const maxDuration = 120;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,6 +26,19 @@ export async function POST(request: Request) {
     return json(400, { error: "Expected JSON body with url and html" });
   }
 
-  const result = await handleCapturePayload(payload);
+  const result = handleCapturePayload(payload);
+  if (result.work) {
+    const work = result.work;
+    after(async () => {
+      try {
+        await work();
+      } catch (error: unknown) {
+        console.error(
+          "Capture failed",
+          error instanceof Error ? error.message : error,
+        );
+      }
+    });
+  }
   return json(result.status, result.body);
 }

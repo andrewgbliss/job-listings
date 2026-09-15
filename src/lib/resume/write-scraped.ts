@@ -1,90 +1,22 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import {
-  createResumeFromJobListing,
-  renderTailoredResumeModule,
-  resumeExportName,
-  resumeFileName,
-  resumeIdFromJob,
-  type JobListing,
-} from "./from-job-listing";
+import { resumeIdFromJob, type JobListing } from "./utils/from-job-listing";
 import {
   jobUrlsFromHtml,
   listingFromHtml,
   listingLooksLikeAJob,
-} from "./listing-from-html";
-import { findScrapedById, scrapedFolderAbsPath } from "./scraped-folder";
+} from "./utils/listing-from-html";
+import { retailorScrapedResume } from "./utils/retailor-scraped";
+import { findScrapedById, scrapedDirFor } from "./utils/scraped-folder";
+import { processedAtIso, processedDateFolder } from "./utils/scraped-path";
 
-const SCRAPED_ROOT = scrapedFolderAbsPath();
 const BUILTIN_IDS = new Set(["main", "ai-dev", "game-dev"]);
 
-function domainFolder(url: string) {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return "unknown";
-  }
-}
+export { scrapedDirFor };
 
-export function scrapedDirFor(url: string) {
-  return path.join(SCRAPED_ROOT, domainFolder(url));
-}
-
-async function collectScrapedResumeFiles(dir: string): Promise<Array<string>> {
-  const entries = await fs.readdir(dir, { withFileTypes: true }).catch(() => []);
-  const files: Array<string> = [];
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...(await collectScrapedResumeFiles(fullPath)));
-      continue;
-    }
-    if (entry.isFile() && entry.name.endsWith("_resume.ts")) {
-      files.push(fullPath);
-    }
-  }
-  return files.sort();
-}
-
-export async function writeScrapedBarrel() {
-  const files = await collectScrapedResumeFiles(SCRAPED_ROOT);
-  const modules = files.map((filePath) => {
-    const id = path
-      .basename(filePath)
-      .replace(/_resume\.ts$/, "")
-      .replace(/_/g, "-");
-    const importPath = `./${path
-      .relative(SCRAPED_ROOT, filePath)
-      .replaceAll("\\", "/")
-      .replace(/\.ts$/, "")}`;
-    return {
-      exportName: resumeExportName(id),
-      importPath,
-    };
-  });
-
-  const imports = modules
-    .map((module) => `import { ${module.exportName} } from "${module.importPath}";`)
-    .join("\n");
-  const list =
-    modules.length > 0
-      ? `\n  ${modules.map((module) => module.exportName).join(",\n  ")},\n`
-      : "\n";
-
-  await fs.mkdir(SCRAPED_ROOT, { recursive: true });
-  await fs.writeFile(
-    path.join(SCRAPED_ROOT, "index.ts"),
-    `import type { ResumeDocument } from "../types";
-${imports ? `${imports}\n` : ""}
-export const scrapedResumes: Array<ResumeDocument> = [${list}];
-`,
-  );
-}
-
-async function mergeJobUrls(seed: string, urls: Array<string>) {
-  const dir = scrapedDirFor(seed);
-  await fs.mkdir(dir, { recursive: true });
-  const filePath = path.join(dir, "urls.json");
+async function mergeJobUrls(seed: string, urls: Array<string>, outDir: string) {
+  await fs.mkdir(outDir, { recursive: true });
+  const filePath = path.join(outDir, "urls.json");
   let existing: Array<string> = [];
   try {
     const parsed: unknown = JSON.parse(await fs.readFile(filePath, "utf8"));
@@ -108,6 +40,7 @@ async function mergeJobUrls(seed: string, urls: Array<string>) {
       {
         source: seed,
         scrapedAt: new Date().toISOString(),
+        processedAt: processedAtIso(),
         urls: merged,
       },
       null,
@@ -116,24 +49,54 @@ async function mergeJobUrls(seed: string, urls: Array<string>) {
   );
 }
 
-export async function writeCapturedListing(options: {
+function repoPath(filePath: string) {
+  return path.relative(process.cwd(), filePath).replaceAll("\\", "/");
+}
+
+/** Write HTML (+ listing JSON) under `scraped/YYYY_MM_DD/<domain>/`. */
+export async function saveCapturedHtml(options: {
   html: string;
-  listing: JobListing;
+  listing: Pick<JobListing, "url"> & Partial<JobListing>;
   discoveredUrls?: Array<string>;
+  id?: string;
 }) {
   const { html, listing } = options;
-  const id = resumeIdFromJob(listing);
+  const id = options.id || resumeIdFromJob({ url: listing.url, skills: listing.skills ?? [] });
   if (BUILTIN_IDS.has(id)) {
     throw new Error(`Resume id "${id}" is reserved`);
   }
 
-  const outDir = scrapedDirFor(listing.url);
+  const existing = await findScrapedById(id);
+  const now = new Date();
+  const dateFolder = processedDateFolder(now);
+  const processedAt = processedAtIso(now);
+  const outDir = existing?.htmlPath
+    ? path.dirname(existing.htmlPath)
+    : scrapedDirFor(listing.url, dateFolder);
   await fs.mkdir(outDir, { recursive: true });
 
   const stem = id.replace(/-/g, "_");
   const htmlPath = path.join(outDir, `${stem}.html`);
   const listingPath = path.join(outDir, `${stem}_listing.json`);
-  const resumePath = path.join(outDir, resumeFileName(id));
+
+  let previousTitle: string | undefined;
+  let previousCompany: string | undefined;
+  try {
+    const previous: unknown = JSON.parse(
+      await fs.readFile(listingPath, "utf8"),
+    );
+    if (previous && typeof previous === "object") {
+      const record = previous as { title?: unknown; company?: unknown };
+      if (typeof record.title === "string" && record.title.trim()) {
+        previousTitle = record.title.trim();
+      }
+      if (typeof record.company === "string" && record.company.trim()) {
+        previousCompany = record.company.trim();
+      }
+    }
+  } catch {
+    // No listing JSON yet.
+  }
 
   await fs.writeFile(htmlPath, html);
   await fs.writeFile(
@@ -142,36 +105,45 @@ export async function writeCapturedListing(options: {
       {
         url: listing.url,
         searchUrl: listing.searchUrl ?? null,
-        title: listing.title ?? null,
-        skills: listing.skills,
+        title: listing.title || previousTitle || null,
+        company: listing.company || previousCompany || null,
+        skills: listing.skills ?? [],
+        processedAt,
       },
       null,
       2,
     )}\n`,
   );
 
-  const tailored = createResumeFromJobListing(listing, {
-    id,
-    searchUrl: listing.searchUrl,
-  });
-  await fs.writeFile(
-    resumePath,
-    renderTailoredResumeModule(tailored, { importFrom: "../.." }),
-  );
-
   const discovered = options.discoveredUrls?.length
     ? options.discoveredUrls
     : [listing.url];
-  await mergeJobUrls(listing.searchUrl || listing.url, discovered);
-  await writeScrapedBarrel();
+  await mergeJobUrls(listing.searchUrl || listing.url, discovered, outDir);
 
   return {
+    id,
+    htmlPath: repoPath(htmlPath),
+    listingPath: repoPath(listingPath),
+    processedAt,
+    company: listing.company || previousCompany,
+  };
+}
+
+export async function writeCapturedListing(options: {
+  html: string;
+  listing: JobListing;
+  discoveredUrls?: Array<string>;
+  id?: string;
+}) {
+  const saved = await saveCapturedHtml(options);
+  const tailored = await retailorScrapedResume(saved.id);
+
+  return {
+    ...saved,
     id: tailored.id,
     title: tailored.tagline,
-    htmlPath: path.relative(process.cwd(), htmlPath).replaceAll("\\", "/"),
-    listingPath: path.relative(process.cwd(), listingPath).replaceAll("\\", "/"),
-    resumePath: path.relative(process.cwd(), resumePath).replaceAll("\\", "/"),
-    resumeHref: `/resume/${tailored.id}`,
+    resumePath: tailored.resumePath,
+    resumeHref: tailored.resumeHref,
   };
 }
 
@@ -199,6 +171,7 @@ export async function resyncCapturedListing(id: string) {
   return writeCapturedListing({
     html,
     listing,
+    id,
     discoveredUrls: jobUrlsFromHtml(html, url),
   });
 }

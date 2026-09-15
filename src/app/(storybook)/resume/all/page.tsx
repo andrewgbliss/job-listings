@@ -1,10 +1,11 @@
 import {
   allResumesHref,
+  formatProcessedAt,
   isBuiltinResume,
   resumeDisplayName,
-  resumeDocuments,
   scrapedFolderHref,
 } from "@/lib/resume";
+import { getResumeDocuments } from "@/lib/resume/utils/documents";
 import { website } from "@/lib/website";
 import {
   Table,
@@ -26,7 +27,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function AllResumesPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AllResumesPage() {
+  const resumeDocuments = await getResumeDocuments();
+
   return (
     <main className="min-h-screen w-full bg-zinc-200 px-4 py-6">
       <div className="mx-auto max-w-5xl bg-white text-zinc-950 shadow-[0_1px_8px_rgba(0,0,0,0.08)] [--foreground:oklch(0.145_0_0)] [--muted-foreground:oklch(0.4_0_0)]">
@@ -57,13 +62,21 @@ export default function AllResumesPage() {
           <Table className="table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[18%] text-zinc-700">Resume</TableHead>
-                <TableHead className="w-[28%] text-zinc-700">Role</TableHead>
-                <TableHead className="w-[10%] text-zinc-700">Type</TableHead>
-                <TableHead className="w-[26%] text-zinc-700">Listing</TableHead>
-                <TableHead className="w-[8%] text-zinc-700">Search</TableHead>
-                <TableHead className="w-[5%] text-right text-zinc-700">Jobs</TableHead>
-                <TableHead className="w-[5%] text-right text-zinc-700">Open</TableHead>
+                <TableHead className="w-[14%] text-zinc-700">Resume</TableHead>
+                <TableHead className="w-[14%] text-zinc-700">Company</TableHead>
+                <TableHead className="w-[18%] text-zinc-700">Role</TableHead>
+                <TableHead className="w-[8%] text-zinc-700">Type</TableHead>
+                <TableHead className="w-[14%] text-zinc-700">
+                  Processed
+                </TableHead>
+                <TableHead className="w-[16%] text-zinc-700">Listing</TableHead>
+                <TableHead className="w-[6%] text-zinc-700">Search</TableHead>
+                <TableHead className="w-[5%] text-right text-zinc-700">
+                  Jobs
+                </TableHead>
+                <TableHead className="w-[5%] text-right text-zinc-700">
+                  Open
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -84,6 +97,12 @@ export default function AllResumesPage() {
                       </Link>
                     </TableCell>
                     <TableCell
+                      title={resume.company}
+                      className="max-w-0 truncate text-zinc-700"
+                    >
+                      {resume.company || "—"}
+                    </TableCell>
+                    <TableCell
                       title={resume.tagline}
                       className="max-w-0 truncate text-zinc-700"
                     >
@@ -91,6 +110,12 @@ export default function AllResumesPage() {
                     </TableCell>
                     <TableCell className="text-zinc-600">
                       {isBuiltinResume(resume.id) ? "Built-in" : "Tailored"}
+                    </TableCell>
+                    <TableCell
+                      title={resume.processedAt}
+                      className="max-w-0 truncate tabular-nums text-zinc-600"
+                    >
+                      {formatProcessedAt(resume.processedAt)}
                     </TableCell>
                     <TableCell className="max-w-0 text-zinc-600">
                       {resume.sourceUrl && listing ? (

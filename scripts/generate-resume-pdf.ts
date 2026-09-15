@@ -10,11 +10,11 @@
  */
 import fs from "node:fs/promises";
 import path from "node:path";
+import { DEFAULT_RESUME_ID } from "../src/lib/resume";
 import {
-  DEFAULT_RESUME_ID,
   getAllResumeIds,
   getResumeById,
-} from "../src/lib/resume";
+} from "../src/lib/resume/utils/documents";
 
 const DEFAULT_BASE_URL = "http://localhost:3000";
 const DEFAULT_OUT_DIR = path.join("public", "assets");
@@ -31,7 +31,8 @@ export type GenerateResumePdfOptions = {
   outDir?: string;
 };
 
-function printUsage() {
+async function printUsage() {
+  const ids = await getAllResumeIds();
   console.log(`Usage:
   npm run resume:pdf [-- <id> ...]
   npx tsx scripts/generate-resume-pdf.ts [options] [id ...]
@@ -41,7 +42,7 @@ Options:
   --out <dir>        Output directory (default: ${DEFAULT_OUT_DIR})
   -h, --help         Show this help
 
-Resume ids: ${getAllResumeIds().join(", ")}
+Resume ids: ${ids.join(", ")}
 With no ids, every resume is generated.
 `);
 }
@@ -85,13 +86,33 @@ function parseArgs(argv: Array<string>): GenerateResumePdfOptions & {
   return { ids, baseUrl, outDir };
 }
 
-function pdfFilenameFor(id: string) {
-  const doc = getResumeById(id);
+async function pdfFilenameFor(id: string) {
+  const doc = await getResumeById(id);
   const name = doc?.name ?? "Resume";
   if (id === DEFAULT_RESUME_ID) {
     return `${name} - Resume.pdf`;
   }
   return `${name} - ${id} Resume.pdf`;
+}
+
+async function launchChromium(chromium: typeof import("playwright").chromium) {
+  const attempts: Array<Parameters<typeof chromium.launch>[0]> = [
+    { headless: true, channel: "chrome" },
+    { headless: true, channel: "chromium" },
+    { headless: true },
+  ];
+  let lastError: unknown;
+  for (const options of attempts) {
+    try {
+      return await chromium.launch(options);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  const detail = lastError instanceof Error ? ` ${lastError.message}` : "";
+  throw new Error(
+    `Could not launch Chrome/Chromium.${detail} Run \`npx playwright install chromium\`.`,
+  );
 }
 
 async function assertServer(baseUrl: string) {
@@ -116,12 +137,13 @@ export async function generateResumePdf(
   const baseUrl = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, "");
   const outDir = path.resolve(options.outDir ?? DEFAULT_OUT_DIR);
   const requested = options.ids?.filter(Boolean) ?? [];
-  const ids = requested.length > 0 ? requested : getAllResumeIds();
+  const knownIds = await getAllResumeIds();
+  const ids = requested.length > 0 ? requested : knownIds;
 
-  const unknown = ids.filter((id) => !getResumeById(id));
+  const unknown = ids.filter((id) => !knownIds.includes(id));
   if (unknown.length > 0) {
     throw new Error(
-      `Unknown resume id(s): ${unknown.join(", ")}. Known: ${getAllResumeIds().join(", ")}`,
+      `Unknown resume id(s): ${unknown.join(", ")}. Known: ${knownIds.join(", ")}`,
     );
   }
 
@@ -137,26 +159,19 @@ export async function generateResumePdf(
     );
   }
 
-  let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
-  try {
-    browser = await chromium.launch({ headless: true });
-  } catch {
-    throw new Error(
-      "Could not launch Chromium. Run `npx playwright install chromium`.",
-    );
-  }
+  const browser = await launchChromium(chromium);
 
   const written: Array<string> = [];
 
   try {
     for (const id of ids) {
       const page = await browser.newPage({
-        viewport: { width: 1200, height: 1600 },
+        viewport: { width: 816, height: 1056 },
         colorScheme: "light",
       });
 
       try {
-        const url = `${baseUrl}/resume/${id}`;
+        const url = `${baseUrl}/resume/${id}?pdf=${Date.now()}`;
         const response = await page.goto(url, {
           waitUntil: "load",
           timeout: GOTO_TIMEOUT_MS,
@@ -167,39 +182,67 @@ export async function generateResumePdf(
           );
         }
 
-        await page.evaluate(() => document.fonts.ready);
+        const doc = await getResumeById(id);
+        const marker =
+          doc?.backgroundParagraphs?.[0]?.slice(0, 80) || doc?.tagline;
+        if (marker) {
+          await page.waitForFunction(
+            (text) => document.body.innerText.includes(text),
+            marker,
+            { timeout: 20_000 },
+          );
+        }
+
+        await page.evaluate(() => {
+          document.documentElement.classList.remove("dark");
+          document.documentElement.style.colorScheme = "light";
+          return document.fonts.ready;
+        });
         await delay(SETTLE_MS);
         await page.addStyleTag({
           content: `
             @page {
               size: Letter;
-              margin: 0.4in 0;
+              margin: 0.5in;
             }
             html, body, main {
+              width: 100% !important;
+              max-width: none !important;
               margin: 0 !important;
               padding: 0 !important;
               background: white !important;
+              color-scheme: light !important;
             }
-            article ul {
+            article {
               display: block !important;
+              min-height: 0 !important;
+              box-sizing: border-box !important;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+            .break-inside-avoid {
+              break-inside: avoid !important;
+              page-break-inside: avoid !important;
+              -webkit-column-break-inside: avoid !important;
             }
             nextjs-portal,
             #nextjs-dev-indicator,
             [data-next-badge-root],
-            [data-nextjs-toast] {
+            [data-nextjs-toast],
+            [data-sonner-toaster] {
               display: none !important;
             }
           `,
         });
         await page.emulateMedia({ media: "print", colorScheme: "light" });
 
-        const outputPath = path.join(outDir, pdfFilenameFor(id));
+        const outputPath = path.join(outDir, await pdfFilenameFor(id));
         await page.pdf({
           path: outputPath,
           format: "Letter",
           printBackground: true,
-          preferCSSPageSize: false,
-          margin: { top: "0.4in", bottom: "0.4in", left: "0", right: "0" },
+          preferCSSPageSize: true,
+          margin: { top: "0", bottom: "0", left: "0", right: "0" },
         });
         written.push(outputPath);
         console.log(`Wrote ${path.relative(process.cwd(), outputPath)}`);
@@ -217,7 +260,7 @@ export async function generateResumePdf(
 async function main() {
   const parsed = parseArgs(process.argv.slice(2));
   if (parsed.help) {
-    printUsage();
+    await printUsage();
     return;
   }
 
