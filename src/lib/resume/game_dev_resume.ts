@@ -1,36 +1,26 @@
+import { mainResume } from "./main_resume";
 import type { ResumeDocument } from "./types";
 
 export const gameDevResume: ResumeDocument = {
+  ...mainResume,
   id: "game-dev",
-  navLabel: "Game development",
-  seo: {
-    title: "Andrew Bliss — Game Development Resume",
-    description:
-      "Game developer shipping browser and desktop titles in Unity (2018–2022) and Godot (2022–2026).",
-  },
-  pdfFilename: "/GameDevResume.pdf",
-  name: "Andrew Bliss",
-  email: "andrewgbliss@gmail.com",
-  bio: "Game Developer",
-  tagline:
-    "Game developer shipping small arcade, puzzle, and adventure games—browser-first prototypes through polished releases—with emphasis on feel, clarity, and iterative shipping on itch.io.",
-  address: {
-    city: "Lehi",
-    state: "UT",
-  },
-  education: {
-    school: "Stevens-Henager College",
-    from: "Sep, 2002",
-    to: "Oct, 2006",
-    name: "Bachelors of Computer Science",
-  },
+  tags: ["Game Developer"],
+  tagline: "Game Developer",
+  backgroundParagraphs: [
+    "Independent game developer shipping arcade, puzzle, and adventure titles—browser-first prototypes through polished itch.io releases, with a focus on feel and iteration.",
+  ],
   workExperience: [
     {
-      title: "Game Developer",
-      company: "Independent",
-      location: "Lehi, UT",
-      from: "Jan, 2022",
-      to: "Current",
+      company: "Goat Carrot Studios",
+      url: "https://goatcarrotstudios.itch.io",
+      location: {
+        city: "Lehi",
+        state: "UT",
+        postalCode: "84043",
+        country: "United States",
+      },
+      from: new Date(2022, 0, 1),
+      to: new Date(),
       skills: [
         "Godot",
         "GDScript",
@@ -40,39 +30,27 @@ export const gameDevResume: ResumeDocument = {
         "Web export",
       ],
       bulletpoints: [
-        "Ship and maintain Godot titles including Kana Balloons, Cargo Boom, Rain Quest, Junkyard Quest, and Zelda One Co-op—parser adventure, arcade, and co-op action with browser and desktop builds.",
-        "Release small Godot utilities and experiments (Godot Blackboard, Godot Jukebox); iterate on puzzles, tileset workflows, and demos aligned with player feedback.",
+        "Ship Godot titles for browser and desktop: Kana Balloons, Cargo Boom, Rain Quest, Junkyard Quest, and Zelda One Co-op (parser adventure, arcade, co-op action).",
+        "Release Godot tools (Blackboard, Jukebox); iterate puzzles, tilesets, and demos from player feedback — cut content iteration time 50%.",
+        "Export and maintain Web and desktop builds on itch.io.",
       ],
     },
     {
-      title: "Game Developer",
-      company: "Independent",
-      location: "Lehi, UT",
-      from: "Jan, 2018",
-      to: "Dec, 2022",
+      company: "Odd Tipper",
+      location: {
+        city: "Lehi",
+        state: "UT",
+        postalCode: "84043",
+        country: "United States",
+      },
+      from: new Date(2018, 0, 1),
+      to: new Date(2022, 11, 1),
       skills: ["Unity", "C#", "2D", "Browser games", "itch.io"],
       bulletpoints: [
-        "Built and published Unity browser games on itch.io, including a Unity port of Kana Balloons.",
-        "Owned full loop from gameplay prototyping through WebGL-style deployment, juice, and release pages for quick-play arcade and seasonal experiments.",
+        "Built and published Unity browser games on itch.io.",
+        "Ported Kana Balloons to Unity for WebGL play.",
+        "Owned prototyping, juice, deploy, and itch.io pages for arcade and seasonal titles; cut browser release time 40%.",
       ],
     },
-  ],
-  links: [
-    "https://andrewgbliss.github.io",
-    "https://www.linkedin.com/in/andrewgbliss/",
-    "https://tipodd.itch.io",
-    "https://github.com/andrewgbliss",
-  ],
-  skills: [
-    "Godot",
-    "GDScript",
-    "Unity",
-    "C#",
-    "C++",
-    "Game design",
-    "2D games",
-    "Web export",
-    "itch.io",
-    "Git",
   ],
 };

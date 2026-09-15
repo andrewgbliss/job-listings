@@ -26,7 +26,7 @@ export function BusinessCard() {
           </div>
           <div className="flex flex-col justify-center">
             <h1 className="text-3xl font-bold mb-2">{resume.name}</h1>
-            <p className="text-lg text-muted-foreground mb-4">{resume.bio}</p>
+            <p className="text-lg text-muted-foreground mb-4">{resume.tagline}</p>
             <div className="flex flex-row gap-2">
               <Link href={defaultResumeHref} className="text-primary hover:underline">
                 Resume

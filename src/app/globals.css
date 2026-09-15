@@ -128,3 +128,23 @@
     @apply font-sans;
   }
 }
+
+@media print {
+  @page {
+    size: letter;
+    margin: 0.4in 0;
+  }
+
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  nextjs-portal,
+  #nextjs-dev-indicator,
+  [data-next-badge-root] {
+    display: none !important;
+  }
+}

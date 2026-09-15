@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "screenshots": "playwright install chromium && tsx scripts/capture-portfolio-screenshots.ts"
+    "resume:pdf": "tsx scripts/generate-resume-pdf.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

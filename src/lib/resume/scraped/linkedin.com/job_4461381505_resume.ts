@@ -1,0 +1,131 @@
+import { mainResume } from "../../main_resume";
+import type { ResumeDocument } from "../../types";
+
+/** Tailored from https://www.linkedin.com/jobs/view/4461381505 — https://www.linkedin.com/jobs/view/4461381505 */
+export const job4461381505Resume: ResumeDocument = {
+  ...mainResume,
+  id: "job-4461381505",
+  tags: ["Full-Stack"],
+  sourceUrl: "https://www.linkedin.com/jobs/view/4461381505",
+  backgroundParagraphs: [
+    "Senior Full-Stack Software Engineer in Lehi, UT. B.S. Computer Science, Stevens-Henager College. Builds production software in React, Next.js, TypeScript, Node.js, GCP, and CI/CD, with a bias toward performance, reliability, and shipping.",
+    "At Carketa and Encore Solar, shipped React, Next.js, TypeScript, Node.js, GCP, and CI/CD web applications, APIs, and data pipelines — cut dashboard query time 75%; cut wait times 25%.",
+  ],
+  workExperience: [
+    {
+      company: "Carketa",
+      location: {
+        city: "Lehi",
+        state: "UT",
+        postalCode: "84043",
+        country: "United States",
+      },
+      from: new Date(2022, 8, 1),
+      to: new Date(),
+      skills: [
+        "React",
+        "Next.js",
+        "TypeScript",
+        "GCP",
+        "CI/CD",
+        "Tailwind",
+        "PostgreSQL",
+        "Docker",
+        "Kubernetes",
+        "ArgoCD",
+        "Claude",
+        "Cursor",
+        "BigQuery",
+        "Cloud Storage",
+        "DevOps",
+      ],
+      bulletpoints: [
+        "Led a legacy PHP → full-stack Node.js/React/TypeScript (Next.js) migration; modernized core workflows and improved maintainability.",
+        "Designed a vehicle reconditioning system (tasks, photos, real-time seller REST API sync) adopted by 10 new dealerships per month.",
+        "Built a daily BigQuery + PostgreSQL pipeline (partitioning, materialized views, indexes) that cut dashboard query time 75% as vehicle volume grew.",
+      ],
+    },
+    {
+      company: "Encore Solar",
+      location: {
+        city: "Lehi",
+        state: "UT",
+        postalCode: "84043",
+        country: "United States",
+      },
+      from: new Date(2017, 11, 1),
+      to: new Date(2022, 8, 1),
+      skills: [
+        "React",
+        "Next.js",
+        "TypeScript",
+        "GCP",
+        "CI/CD",
+        "PostgreSQL",
+        "Docker",
+        "Kubernetes",
+        "DevOps",
+      ],
+      bulletpoints: [
+        "Led PHP → full-stack Node.js/React/TypeScript (Next.js) rewrite of a solar appraisal platform; hundreds of companies signed up to manage and sell installation contracts.",
+        "Replaced polling support with a Node.js/Redis queue; cut wait times 25% with zero downtime.",
+        "Shipped a custom solar proposal tool that raised revenue 10%.",
+      ],
+    },
+    {
+      company: "Grow",
+      location: {
+        city: "Orem",
+        state: "UT",
+        postalCode: "84057",
+        country: "United States",
+      },
+      from: new Date(2014, 7, 10),
+      to: new Date(2017, 11, 1),
+      skills: [
+        "React",
+        "Next.js",
+        "TypeScript",
+        "Node.js",
+        "Java",
+        "Express",
+        "Angular",
+        "Tailwind",
+        "PostgreSQL",
+        "Oracle",
+        "Redis",
+        "Docker",
+      ],
+      bulletpoints: [
+        "Served it from Node.js/Express with Oracle, PostgreSQL, and Redis; UI in Angular and full-stack React/TypeScript — cut report refresh time 50%.",
+        "Built a B2B KPI dashboard for SMBs.",
+        "Wired in hundreds of backend REST API data sources.",
+      ],
+    },
+    {
+      company: "Zagg",
+      location: {
+        city: "Salt Lake City",
+        state: "UT",
+        postalCode: "84101",
+        country: "United States",
+      },
+      from: new Date(2009, 9, 5),
+      to: new Date(2014, 7, 10),
+      skills: [
+        "Next.js",
+        "PHP",
+        "CodeIgniter",
+        "MySQL",
+        "jQuery",
+        "CSS",
+        "HTML",
+      ],
+      bulletpoints: [
+        "Built a custom PHP/CodeIgniter backend for shipping, finance, inventory, and custom orders.",
+        "Modeled MySQL data for orders, stock, and financial records.",
+        "Shipped the store-ops UI in JavaScript, jQuery, CSS, and HTML; cut order-processing time 30%.",
+      ],
+    }
+  ],
+};

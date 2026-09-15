@@ -28,14 +28,14 @@ export async function generateMetadata({
   }
 
   const pageUrl = `${website.url}/resume/${doc.id}`;
-  const ogTitle = doc.seo.title;
-  const ogDescription = doc.seo.description;
+  const ogTitle = `${doc.name} — ${doc.tagline}`;
+  const ogDescription = doc.backgroundParagraphs?.[0] ?? doc.tagline;
 
   return {
-    title: doc.seo.title,
-    description: doc.seo.description,
+    title: ogTitle,
+    description: ogDescription,
     icons: {
-      icon: "favicon.ico",
+      icon: "/favicon.ico",
     },
     alternates: {
       canonical: pageUrl,
@@ -73,8 +73,8 @@ export default async function ResumeByIdPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen w-full bg-zinc-300">
-      <div className="mx-auto min-h-screen max-w-3xl border-x border-zinc-300 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+    <main className="min-h-screen w-full bg-zinc-200 px-4 py-6 print:bg-white print:min-h-0 print:p-0">
+      <div className="mx-auto h-[11in] w-full max-w-[8.5in] overflow-auto bg-white text-zinc-950 shadow-[0_1px_8px_rgba(0,0,0,0.08)] print:mx-0 print:h-auto print:max-h-none print:max-w-none print:overflow-visible print:shadow-none [--foreground:oklch(0.145_0_0)] [--muted-foreground:oklch(0.4_0_0)]">
         <Resume document={doc} />
       </div>
     </main>
