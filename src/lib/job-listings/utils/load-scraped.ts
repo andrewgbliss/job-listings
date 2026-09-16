@@ -51,6 +51,7 @@ export async function loadScrapedResumes(): Promise<Array<ResumeDocument>> {
         resumes.push({
           ...doc,
           company: item.company,
+          jobTitle: item.title,
         });
       }
     } catch {

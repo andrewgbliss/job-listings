@@ -1,4 +1,4 @@
-import { allResumesHref, coverLetterPdfHref, defaultScrapedFolderPath, formatProcessedAt, resume as defaultResume, resumePdfHref, scrapedFolderHref } from "@/lib/resume";
+import { allResumesHref, coverLetterPdfFilename, coverLetterPdfHref, defaultScrapedFolderPath, formatProcessedAt, resume as defaultResume, resumePdfFilename, resumePdfHref, scrapedFolderHref } from "@/lib/resume";
 import { listScrapedFolder } from "@/lib/job-listings/utils/scraped-folder";
 import { website } from "@/lib/website";
 import {
@@ -102,6 +102,11 @@ export default async function ScrapedFolderPage() {
                   const listing = scrape.sourceUrl
                     ? displayUrl(scrape.sourceUrl)
                     : undefined;
+                  const pdfSource = {
+                    name: defaultResume.name,
+                    company: scrape.company,
+                    jobTitle: scrape.title,
+                  };
                   return (
                     <TableRow key={scrape.relativePath}>
                       <TableCell className="tabular-nums text-zinc-700">
@@ -172,7 +177,8 @@ export default async function ScrapedFolderPage() {
                             </Link>
                             <span className="text-zinc-400"> · </span>
                             <a
-                              href={resumePdfHref(scrape.id, defaultResume.name)}
+                              href={resumePdfHref(pdfSource)}
+                              download={resumePdfFilename(pdfSource)}
                               target="_blank"
                               rel="noreferrer"
                               className="font-medium text-zinc-950 hover:underline"
@@ -195,10 +201,8 @@ export default async function ScrapedFolderPage() {
                             </Link>
                             <span className="text-zinc-400"> · </span>
                             <a
-                              href={coverLetterPdfHref(
-                                scrape.id,
-                                defaultResume.name,
-                              )}
+                              href={coverLetterPdfHref(pdfSource)}
+                              download={coverLetterPdfFilename(pdfSource)}
                               target="_blank"
                               rel="noreferrer"
                               className="font-medium text-zinc-950 hover:underline"

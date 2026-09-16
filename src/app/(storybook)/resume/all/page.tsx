@@ -1,10 +1,12 @@
 import {
   allResumesHref,
   coverLetterHref,
+  coverLetterPdfFilename,
   coverLetterPdfHref,
   formatProcessedAt,
   isBuiltinResume,
   resumeDisplayName,
+  resumePdfFilename,
   resumePdfHref,
   scrapedFolderHref,
 } from "@/lib/resume";
@@ -165,7 +167,8 @@ export default async function AllResumesPage() {
                       </Link>
                       <span className="text-zinc-400"> · </span>
                       <a
-                        href={resumePdfHref(resume.id, resume.name)}
+                        href={resumePdfHref(resume)}
+                        download={resumePdfFilename(resume)}
                         target="_blank"
                         rel="noreferrer"
                         className="font-medium text-zinc-950 hover:underline"
@@ -182,7 +185,8 @@ export default async function AllResumesPage() {
                       </Link>
                       <span className="text-zinc-400"> · </span>
                       <a
-                        href={coverLetterPdfHref(resume.id, resume.name)}
+                        href={coverLetterPdfHref(resume)}
+                        download={coverLetterPdfFilename(resume)}
                         target="_blank"
                         rel="noreferrer"
                         className="font-medium text-zinc-950 hover:underline"

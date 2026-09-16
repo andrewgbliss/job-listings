@@ -47,6 +47,8 @@ export type ResumeDocument = ResumeOptions & {
   processedAt?: string;
   /** Hiring company from the listing. Tables only — not shown on the resume. */
   company?: string;
+  /** Listing job title. Used in PDF filenames; not shown on the resume. */
+  jobTitle?: string;
   /** Listing-matched skills for the top Skills section. */
   skills?: Array<string>;
 };

@@ -11,8 +11,10 @@ import {
 import {
   allResumesHref,
   coverLetterHref,
+  coverLetterPdfFilename,
   coverLetterPdfHref,
   isBuiltinResume,
+  resumePdfFilename,
   resumePdfHref,
   scrapedFolderHref,
   type ResumeDocument,
@@ -26,6 +28,7 @@ import {
   Mail,
   Menu,
   RefreshCw,
+  RotateCw,
   Search,
   Table2,
 } from "lucide-react";
@@ -33,8 +36,14 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-function downloadPdf(href: string) {
-  window.open(href, "_blank");
+function downloadPdf(href: string, filename: string) {
+  const link = document.createElement("a");
+  link.href = `${href}?t=${Date.now()}`;
+  link.download = filename;
+  link.rel = "noreferrer";
+  document.body.append(link);
+  link.click();
+  link.remove();
 }
 
 export function Header({
@@ -46,14 +55,17 @@ export function Header({
 }) {
   const router = useRouter();
   const [resyncing, setResyncing] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
   const canResync = !isBuiltinResume(document.id);
+  const busy = resyncing || generatingPdf;
 
   useEffect(() => {
     setResyncing(false);
+    setGeneratingPdf(false);
   }, [document.id, document.processedAt]);
 
   async function resyncResume() {
-    if (resyncing) {
+    if (busy) {
       return;
     }
     setResyncing(true);
@@ -75,12 +87,43 @@ export function Header({
         return;
       }
       toast.success("Resume and cover letter resynced.");
-      setResyncing(false);
       router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Resync failed");
     } finally {
       setResyncing(false);
+    }
+  }
+
+  async function regeneratePdfs() {
+    if (busy) {
+      return;
+    }
+    setGeneratingPdf(true);
+    try {
+      const response = await fetch("/api/generate-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: document.id }),
+      });
+      const payload: unknown = await response.json().catch(() => null);
+      const error =
+        payload &&
+        typeof payload === "object" &&
+        typeof (payload as { error?: unknown }).error === "string"
+          ? (payload as { error: string }).error
+          : `PDF generation failed (${response.status})`;
+      if (!response.ok) {
+        toast.error(error);
+        return;
+      }
+      toast.success("Resume and cover letter PDFs regenerated.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "PDF generation failed",
+      );
+    } finally {
+      setGeneratingPdf(false);
     }
   }
 
@@ -93,12 +136,16 @@ export function Header({
             aria-label="Resume menu"
             className="border-zinc-300 bg-white text-zinc-900 hover:bg-zinc-50"
           >
-            {resyncing ? (
+            {busy ? (
               <RefreshCw className="animate-spin" />
             ) : (
               <Menu />
             )}
-            {resyncing ? "Resyncing…" : "Menu"}
+            {resyncing
+              ? "Resyncing…"
+              : generatingPdf
+                ? "Generating…"
+                : "Menu"}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -106,7 +153,7 @@ export function Header({
           className="min-w-52 border-zinc-200 bg-white text-zinc-950 shadow-md"
         >
           <DropdownMenuItem
-            disabled={resyncing || !canResync}
+            disabled={busy || !canResync}
             onSelect={() => {
               if (!canResync) {
                 return;
@@ -118,8 +165,17 @@ export function Header({
             {resyncing ? "Resyncing…" : "Resync"}
           </DropdownMenuItem>
           <DropdownMenuItem
+            disabled={busy}
+            onSelect={() => {
+              void regeneratePdfs();
+            }}
+          >
+            <RotateCw className={generatingPdf ? "animate-spin" : ""} />
+            {generatingPdf ? "Generating PDFs…" : "Regenerate PDFs"}
+          </DropdownMenuItem>
+          <DropdownMenuItem
             onSelect={() =>
-              downloadPdf(resumePdfHref(document.id, document.name))
+              downloadPdf(resumePdfHref(document), resumePdfFilename(document))
             }
           >
             <Download />
@@ -127,7 +183,10 @@ export function Header({
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() =>
-              downloadPdf(coverLetterPdfHref(document.id, document.name))
+              downloadPdf(
+                coverLetterPdfHref(document),
+                coverLetterPdfFilename(document),
+              )
             }
           >
             <Download />

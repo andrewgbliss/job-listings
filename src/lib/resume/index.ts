@@ -37,28 +37,50 @@ export function coverLetterHref(id: string) {
   return `/resume/${id}/cover-letter` as const;
 }
 
-export function resumePdfFilename(id: string, name: string) {
-  return id === DEFAULT_RESUME_ID
-    ? `${name} - Resume.pdf`
-    : `${name} - ${id} Resume.pdf`;
+export type PdfNameSource = {
+  name: string;
+  company?: string;
+  jobTitle?: string;
+  tagline?: string;
+  title?: string;
+};
+
+function sanitizePdfPart(value: string) {
+  return value
+    .replace(/[·•]/g, "-")
+    .replace(/[\\/:*?"<>|]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-export function coverLetterPdfFilename(id: string, name: string) {
-  return id === DEFAULT_RESUME_ID
-    ? `${name} - Cover Letter.pdf`
-    : `${name} - ${id} Cover Letter.pdf`;
+function pdfStem(doc: PdfNameSource) {
+  const jobTitle = doc.jobTitle || doc.title || doc.tagline;
+  return [doc.name, doc.company, jobTitle]
+    .map((part) => (part ? sanitizePdfPart(part) : ""))
+    .filter(Boolean)
+    .join(" - ");
+}
+
+export function resumePdfFilename(doc: PdfNameSource) {
+  const stem = pdfStem(doc);
+  return `${stem || "Resume"} - Resume.pdf`;
+}
+
+export function coverLetterPdfFilename(doc: PdfNameSource) {
+  const stem = pdfStem(doc);
+  return `${stem || "Cover Letter"} - Cover Letter.pdf`;
 }
 
 export function assetHref(filename: string) {
   return `/assets/${encodeURIComponent(filename)}`;
 }
 
-export function resumePdfHref(id: string, name: string) {
-  return assetHref(resumePdfFilename(id, name));
+export function resumePdfHref(doc: PdfNameSource) {
+  return assetHref(resumePdfFilename(doc));
 }
 
-export function coverLetterPdfHref(id: string, name: string) {
-  return assetHref(coverLetterPdfFilename(id, name));
+export function coverLetterPdfHref(doc: PdfNameSource) {
+  return assetHref(coverLetterPdfFilename(doc));
 }
 
 export function isBuiltinResume(id: string) {

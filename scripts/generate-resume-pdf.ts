@@ -95,10 +95,15 @@ async function pdfFilenameFor(
   kind: "resume" | "cover-letter",
 ) {
   const doc = await getResumeById(id);
-  const name = doc?.name ?? "Resume";
+  const source = {
+    name: doc?.name ?? "Resume",
+    company: doc?.company,
+    jobTitle: doc?.jobTitle,
+    tagline: doc?.tagline,
+  };
   return kind === "cover-letter"
-    ? coverLetterPdfFilename(id, name)
-    : resumePdfFilename(id, name);
+    ? coverLetterPdfFilename(source)
+    : resumePdfFilename(source);
 }
 
 function printCss(kind: "resume" | "cover-letter") {
