@@ -15,10 +15,13 @@ export type ScrapedFolderItem = {
   htmlPath?: string;
   listingPath?: string;
   resumePath?: string;
+  coverLetterPath?: string;
   hasHtml: boolean;
   hasListing: boolean;
   hasResume: boolean;
+  hasCoverLetter: boolean;
   resumeHref?: string;
+  coverLetterHref?: string;
   sourceUrl?: string;
   searchUrl?: string;
   title?: string;
@@ -45,16 +48,23 @@ export function scrapedDirFor(
   return path.join(scrapedFolderAbsPath(), dateFolder, domainFolder(url));
 }
 
-/** Relative import from `scraped/YYYY_MM_DD/<domain>/` back to `src/lib/resume`. */
-export const scrapedResumeImportFrom = "../../..";
+/** Relative import from `scraped/YYYY_MM_DD/<domain>/` to `src/lib/resume`. */
+export const scrapedResumeImportFrom = "../../../../resume";
+
+/** Relative import from `scraped/YYYY_MM_DD/<domain>/` to `src/lib/job-listings/utils`. */
+export const scrapedTypesImportFrom = "../../../utils";
 
 type StemFiles = {
   html?: string;
   listing?: string;
   resume?: string;
+  coverLetter?: string;
 };
 
 function stemFromFile(name: string): { stem: string; kind: keyof StemFiles } | null {
+  if (name.endsWith("_cover_letter.md")) {
+    return { stem: name.replace(/_cover_letter\.md$/, ""), kind: "coverLetter" };
+  }
   if (name.endsWith("_resume.ts")) {
     return { stem: name.replace(/_resume\.ts$/, ""), kind: "resume" };
   }
@@ -123,10 +133,16 @@ async function listDomainFolder(
       htmlPath: parts.html,
       listingPath: parts.listing,
       resumePath: parts.resume,
+      coverLetterPath: parts.coverLetter,
       hasHtml: Boolean(parts.html),
       hasListing: Boolean(parts.listing),
       hasResume: Boolean(parts.resume),
+      hasCoverLetter: Boolean(parts.coverLetter),
       resumeHref: parts.resume ? `/resume/${id}` : undefined,
+      coverLetterHref:
+        parts.coverLetter || parts.listing || parts.html
+          ? `/resume/${id}/cover-letter`
+          : undefined,
       sourceUrl: listingMeta.sourceUrl,
       searchUrl: listingMeta.searchUrl,
       title: listingMeta.title,

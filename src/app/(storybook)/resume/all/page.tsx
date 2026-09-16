@@ -1,11 +1,14 @@
 import {
   allResumesHref,
+  coverLetterHref,
+  coverLetterPdfHref,
   formatProcessedAt,
   isBuiltinResume,
   resumeDisplayName,
+  resumePdfHref,
   scrapedFolderHref,
 } from "@/lib/resume";
-import { getResumeDocuments } from "@/lib/resume/utils/documents";
+import { getResumeDocuments } from "@/lib/job-listings/utils/documents";
 import { website } from "@/lib/website";
 import {
   Table,
@@ -62,20 +65,23 @@ export default async function AllResumesPage() {
           <Table className="table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[14%] text-zinc-700">Resume</TableHead>
-                <TableHead className="w-[14%] text-zinc-700">Company</TableHead>
-                <TableHead className="w-[18%] text-zinc-700">Role</TableHead>
+                <TableHead className="w-[13%] text-zinc-700">Resume</TableHead>
+                <TableHead className="w-[13%] text-zinc-700">Company</TableHead>
+                <TableHead className="w-[16%] text-zinc-700">Role</TableHead>
                 <TableHead className="w-[8%] text-zinc-700">Type</TableHead>
-                <TableHead className="w-[14%] text-zinc-700">
+                <TableHead className="w-[13%] text-zinc-700">
                   Processed
                 </TableHead>
-                <TableHead className="w-[16%] text-zinc-700">Listing</TableHead>
+                <TableHead className="w-[14%] text-zinc-700">Listing</TableHead>
                 <TableHead className="w-[6%] text-zinc-700">Search</TableHead>
                 <TableHead className="w-[5%] text-right text-zinc-700">
                   Jobs
                 </TableHead>
-                <TableHead className="w-[5%] text-right text-zinc-700">
+                <TableHead className="w-[6%] text-right text-zinc-700">
                   Open
+                </TableHead>
+                <TableHead className="w-[6%] text-right text-zinc-700">
+                  Letter
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -157,6 +163,32 @@ export default async function AllResumesPage() {
                       >
                         View
                       </Link>
+                      <span className="text-zinc-400"> · </span>
+                      <a
+                        href={resumePdfHref(resume.id, resume.name)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-medium text-zinc-950 hover:underline"
+                      >
+                        PDF
+                      </a>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link
+                        href={coverLetterHref(resume.id)}
+                        className="font-medium text-zinc-950 hover:underline"
+                      >
+                        View
+                      </Link>
+                      <span className="text-zinc-400"> · </span>
+                      <a
+                        href={coverLetterPdfHref(resume.id, resume.name)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-medium text-zinc-950 hover:underline"
+                      >
+                        PDF
+                      </a>
                     </TableCell>
                   </TableRow>
                 );

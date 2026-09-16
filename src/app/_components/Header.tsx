@@ -9,17 +9,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  DEFAULT_RESUME_ID,
   allResumesHref,
+  coverLetterHref,
+  coverLetterPdfHref,
   isBuiltinResume,
+  resumePdfHref,
   scrapedFolderHref,
   type ResumeDocument,
 } from "@/lib/resume";
 import {
   ArrowLeft,
+  Download,
   ExternalLink,
   FileText,
   FolderOpen,
+  Mail,
   Menu,
   RefreshCw,
   Search,
@@ -29,15 +33,17 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-function pdfHref(document: ResumeDocument) {
-  const filename =
-    document.id === DEFAULT_RESUME_ID
-      ? `${document.name} - Resume.pdf`
-      : `${document.name} - ${document.id} Resume.pdf`;
-  return `/assets/${encodeURIComponent(filename)}`;
+function downloadPdf(href: string) {
+  window.open(href, "_blank");
 }
 
-export function Header({ document }: { document: ResumeDocument }) {
+export function Header({
+  document,
+  active = "resume",
+}: {
+  document: ResumeDocument;
+  active?: "resume" | "cover-letter";
+}) {
   const router = useRouter();
   const [resyncing, setResyncing] = useState(false);
   const canResync = !isBuiltinResume(document.id);
@@ -68,7 +74,7 @@ export function Header({ document }: { document: ResumeDocument }) {
         toast.error(error);
         return;
       }
-      toast.success("Resume resynced.");
+      toast.success("Resume and cover letter resynced.");
       setResyncing(false);
       router.refresh();
     } catch (error) {
@@ -112,10 +118,32 @@ export function Header({ document }: { document: ResumeDocument }) {
             {resyncing ? "Resyncing…" : "Resync"}
           </DropdownMenuItem>
           <DropdownMenuItem
-            onSelect={() => window.open(pdfHref(document), "_blank")}
+            onSelect={() =>
+              downloadPdf(resumePdfHref(document.id, document.name))
+            }
+          >
+            <Download />
+            Resume PDF
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() =>
+              downloadPdf(coverLetterPdfHref(document.id, document.name))
+            }
+          >
+            <Download />
+            Cover letter PDF
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => router.push(`/resume/${document.id}`)}
           >
             <FileText />
-            PDF
+            Resume
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => router.push(coverLetterHref(document.id))}
+          >
+            <Mail />
+            Cover letter
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => router.push(allResumesHref)}>

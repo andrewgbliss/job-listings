@@ -1,6 +1,7 @@
 import { Header } from "@/app/_components/Header";
-import { Resume } from "@/app/_components/Resume";
-import { getAllResumeIds, getResumeById } from "@/lib/job-listings/utils/documents";
+import { CoverLetter } from "@/app/_components/CoverLetter";
+import { getCoverLetterById } from "@/lib/cover-letter";
+import { getResumeById } from "@/lib/job-listings/utils/documents";
 import { website } from "@/lib/website";
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
@@ -16,66 +17,43 @@ export const viewport: Viewport = {
   themeColor: "#d4d4d8",
 };
 
-export async function generateStaticParams() {
-  return (await getAllResumeIds()).map((id) => ({ id }));
-}
-
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const doc = await getResumeById(id);
-  if (!doc) {
-    return { title: "Resume not found" };
+  const letter = await getCoverLetterById(id);
+  if (!letter) {
+    return { title: "Cover letter not found" };
   }
 
-  const pageUrl = `${website.url}/resume/${doc.id}`;
-  const ogTitle = `${doc.name} — ${doc.tagline}`;
-  const ogDescription = doc.backgroundParagraphs?.[0] ?? doc.tagline;
+  const ogTitle = `${letter.position} — Cover letter`;
+  const ogDescription = letter.body.split("\n").find((line) => line.trim()) ?? ogTitle;
 
   return {
     title: ogTitle,
     description: ogDescription,
-    icons: {
-      icon: "/favicon.ico",
+    robots: {
+      index: false,
+      follow: false,
     },
     alternates: {
-      canonical: pageUrl,
-    },
-    openGraph: {
-      title: ogTitle,
-      description: ogDescription,
-      images: [
-        {
-          url: "andy.jpg",
-        },
-      ],
-      type: "website",
-      url: pageUrl,
-      siteName: website.name,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: ogTitle,
-      description: ogDescription,
-      images: ["andy.jpg"],
-    },
-    robots: {
-      index: true,
-      follow: true,
+      canonical: `${website.url}/resume/${letter.id}/cover-letter`,
     },
   };
 }
 
-export default async function ResumeByIdPage({
+export default async function CoverLetterByIdPage({
   params,
   searchParams,
 }: PageProps) {
   const { id } = await params;
   const { pdf } = await searchParams;
   const forPdf = pdf !== undefined;
-  const doc = await getResumeById(id);
-  if (!doc) {
+  const [letter, doc] = await Promise.all([
+    getCoverLetterById(id),
+    getResumeById(id),
+  ]);
+  if (!letter || !doc) {
     notFound();
   }
 
@@ -95,7 +73,11 @@ export default async function ResumeByIdPage({
         }
       >
         {forPdf ? null : (
-          <Header document={doc} key={doc.processedAt ?? doc.id} />
+          <Header
+            document={doc}
+            active="cover-letter"
+            key={doc.processedAt ?? doc.id}
+          />
         )}
         <div
           className={
@@ -104,7 +86,7 @@ export default async function ResumeByIdPage({
               : "min-h-[11in] bg-white text-zinc-950 shadow-[0_1px_8px_rgba(0,0,0,0.08)] print:shadow-none [--foreground:oklch(0.145_0_0)] [--muted-foreground:oklch(0.4_0_0)]"
           }
         >
-          <Resume document={doc} forPdf={forPdf} />
+          <CoverLetter body={letter.body} forPdf={forPdf} />
         </div>
       </div>
     </main>

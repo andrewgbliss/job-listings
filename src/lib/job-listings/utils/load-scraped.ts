@@ -1,7 +1,7 @@
 import { resumeExportName } from "./from-job-listing";
 import { listScrapedFolder } from "./scraped-folder";
 import { isScrapedDateFolder } from "./scraped-path";
-import type { ResumeDocument } from "../types";
+import type { ResumeDocument } from "./types";
 
 function isResumeDocument(value: unknown): value is ResumeDocument {
   return Boolean(

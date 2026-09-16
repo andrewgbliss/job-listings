@@ -1,5 +1,5 @@
 import type { ResumeDocument } from "@/lib/resume";
-import { sortSkillsByWeight } from "@/lib/resume/utils/keywords";
+import { sortSkillsByWeight } from "@/lib/job-listings/utils/keywords";
 import { cn } from "@/lib/utils";
 
 const monthYearFormatter = new Intl.DateTimeFormat("en-US", {
@@ -81,11 +81,9 @@ function WorkSkills({
       {skills.map((skill, index) => (
         <span key={`${skill}-${index}`}>
           {index > 0 && " · "}
-          {skillIsMatched(skill, matchedSkills) ? (
-            <strong className="font-semibold text-zinc-800">{skill}</strong>
-          ) : (
+          {
             skill
-          )}
+          }
         </span>
       ))}
     </p>
@@ -230,7 +228,7 @@ export function Resume({
       <section className={sectionGap} aria-labelledby="experience-heading">
         <SectionHeading id="experience-heading">Experience</SectionHeading>
         {/* Divs (not flex/li) so Chromium PDF respects break-inside-avoid. */}
-        <div className={cn("m-0", forPdf ? "space-y-2.5" : "space-y-4")}>
+        <div className={cn("m-0 pt-2", forPdf ? "space-y-2.5" : "space-y-4")}>
           {document.workExperience.map((work, i) => (
             <div
               key={`${work.company}-${i}`}
@@ -276,7 +274,7 @@ export function Resume({
         aria-labelledby="education-heading"
       >
         <SectionHeading id="education-heading">Education</SectionHeading>
-        <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+        <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4 pt-2">
           <p className="text-[15px] leading-snug text-zinc-800">
             <span className="font-semibold text-zinc-950">
               {document.education.school}

@@ -1,6 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import {
+  coverLetterFileName,
+  createCoverLetterFromJobListing,
+} from "../../cover-letter/from-job-listing";
+import {
   createResumeFromJobListing,
   renderTailoredResumeModule,
   resumeFileName,
@@ -11,6 +15,7 @@ import {
   findScrapedById,
   listScrapedFolder,
   scrapedResumeImportFrom,
+  scrapedTypesImportFrom,
   type ScrapedFolderItem,
 } from "./scraped-folder";
 import { processedAtIso } from "./scraped-path";
@@ -136,14 +141,28 @@ export async function retailorScrapedResume(id: string) {
     resumePath,
     renderTailoredResumeModule(tailored, {
       importFrom: scrapedResumeImportFrom,
+      typesImportFrom: scrapedTypesImportFrom,
     }),
   );
+
+  const coverLetter = createCoverLetterFromJobListing(listing, {
+    id,
+    searchUrl: listing.searchUrl,
+    processedAt,
+  });
+  const coverLetterPath =
+    scrape.coverLetterPath ?? path.join(dir, coverLetterFileName(id));
+  await fs.writeFile(coverLetterPath, coverLetter.body);
 
   return {
     id: tailored.id,
     tagline: tailored.tagline,
     resumePath: path.relative(process.cwd(), resumePath).replaceAll("\\", "/"),
     resumeHref: `/resume/${tailored.id}`,
+    coverLetterPath: path
+      .relative(process.cwd(), coverLetterPath)
+      .replaceAll("\\", "/"),
+    coverLetterHref: `/resume/${tailored.id}/cover-letter`,
   };
 }
 

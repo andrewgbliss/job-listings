@@ -1,4 +1,4 @@
-import { getAllResumeIds } from "@/lib/resume/utils/documents";
+import { getAllResumeIds } from "@/lib/job-listings/utils/documents";
 import { website } from "@/lib/website";
 import type { MetadataRoute } from "next";
 import { getPaths, getTags } from "@/lib/data/articles";

@@ -1,5 +1,5 @@
 /**
- * Render resume pages to letter-size PDFs with Playwright.
+ * Render resume and cover-letter pages to letter-size PDFs with Playwright.
  *
  * Start the app first (`npm run dev`), then:
  *
@@ -10,11 +10,15 @@
  */
 import fs from "node:fs/promises";
 import path from "node:path";
-import { DEFAULT_RESUME_ID } from "../src/lib/resume";
+import { getCoverLetterById } from "../src/lib/cover-letter";
+import {
+  coverLetterPdfFilename,
+  resumePdfFilename,
+} from "../src/lib/resume";
 import {
   getAllResumeIds,
   getResumeById,
-} from "../src/lib/resume/utils/documents";
+} from "../src/lib/job-listings/utils/documents";
 
 const DEFAULT_BASE_URL = "http://localhost:3000";
 const DEFAULT_OUT_DIR = path.join("public", "assets");
@@ -43,7 +47,7 @@ Options:
   -h, --help         Show this help
 
 Resume ids: ${ids.join(", ")}
-With no ids, every resume is generated.
+With no ids, every resume and cover letter is generated.
 `);
 }
 
@@ -86,13 +90,52 @@ function parseArgs(argv: Array<string>): GenerateResumePdfOptions & {
   return { ids, baseUrl, outDir };
 }
 
-async function pdfFilenameFor(id: string) {
+async function pdfFilenameFor(
+  id: string,
+  kind: "resume" | "cover-letter",
+) {
   const doc = await getResumeById(id);
   const name = doc?.name ?? "Resume";
-  if (id === DEFAULT_RESUME_ID) {
-    return `${name} - Resume.pdf`;
+  return kind === "cover-letter"
+    ? coverLetterPdfFilename(id, name)
+    : resumePdfFilename(id, name);
+}
+
+function printCss(kind: "resume" | "cover-letter") {
+  const articlePadding = kind === "cover-letter" ? "0.25in" : "0";
+  return `
+  @page {
+    size: Letter;
+    margin: 0.5in;
   }
-  return `${name} - ${id} Resume.pdf`;
+  html, body, main {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    color-scheme: light !important;
+  }
+  article {
+    display: block !important;
+    min-height: 0 !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: ${articlePadding} !important;
+  }
+  .break-inside-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    -webkit-column-break-inside: avoid !important;
+  }
+  nextjs-portal,
+  #nextjs-dev-indicator,
+  [data-next-badge-root],
+  [data-nextjs-toast],
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+`;
 }
 
 async function launchChromium(chromium: typeof import("playwright").chromium) {
@@ -131,6 +174,76 @@ async function assertServer(baseUrl: string) {
   }
 }
 
+async function markerFor(
+  id: string,
+  kind: "resume" | "cover-letter",
+) {
+  if (kind === "cover-letter") {
+    const letter = await getCoverLetterById(id);
+    const line = letter?.body
+      .split("\n")
+      .map((item) => item.trim())
+      .find((item) => item.length > 40);
+    return line?.slice(0, 80) || letter?.position;
+  }
+  const doc = await getResumeById(id);
+  return doc?.backgroundParagraphs?.[0]?.slice(0, 80) || doc?.tagline;
+}
+
+async function printPdfPage(
+  browser: import("playwright").Browser,
+  options: {
+    url: string;
+    marker?: string;
+    outputPath: string;
+    kind: "resume" | "cover-letter";
+  },
+) {
+  const page = await browser.newPage({
+    viewport: { width: 816, height: 1056 },
+    colorScheme: "light",
+  });
+
+  try {
+    const response = await page.goto(options.url, {
+      waitUntil: "load",
+      timeout: GOTO_TIMEOUT_MS,
+    });
+    if (!response || !response.ok()) {
+      throw new Error(
+        `Failed to load ${options.url} (${response?.status() ?? "no response"})`,
+      );
+    }
+
+    if (options.marker) {
+      await page.waitForFunction(
+        (text) => document.body.innerText.includes(text),
+        options.marker,
+        { timeout: 20_000 },
+      );
+    }
+
+    await page.evaluate(() => {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.style.colorScheme = "light";
+      return document.fonts.ready;
+    });
+    await delay(SETTLE_MS);
+    await page.addStyleTag({ content: printCss(options.kind) });
+    await page.emulateMedia({ media: "print", colorScheme: "light" });
+
+    await page.pdf({
+      path: options.outputPath,
+      format: "Letter",
+      printBackground: true,
+      preferCSSPageSize: true,
+      margin: { top: "0", bottom: "0", left: "0", right: "0" },
+    });
+  } finally {
+    await page.close();
+  }
+}
+
 export async function generateResumePdf(
   options: GenerateResumePdfOptions = {},
 ): Promise<Array<string>> {
@@ -160,94 +273,25 @@ export async function generateResumePdf(
   }
 
   const browser = await launchChromium(chromium);
-
   const written: Array<string> = [];
+  const kinds = ["resume", "cover-letter"] as const;
 
   try {
     for (const id of ids) {
-      const page = await browser.newPage({
-        viewport: { width: 816, height: 1056 },
-        colorScheme: "light",
-      });
-
-      try {
-        const url = `${baseUrl}/resume/${id}?pdf=${Date.now()}`;
-        const response = await page.goto(url, {
-          waitUntil: "load",
-          timeout: GOTO_TIMEOUT_MS,
-        });
-        if (!response || !response.ok()) {
-          throw new Error(
-            `Failed to load ${url} (${response?.status() ?? "no response"})`,
-          );
-        }
-
-        const doc = await getResumeById(id);
-        const marker =
-          doc?.backgroundParagraphs?.[0]?.slice(0, 80) || doc?.tagline;
-        if (marker) {
-          await page.waitForFunction(
-            (text) => document.body.innerText.includes(text),
-            marker,
-            { timeout: 20_000 },
-          );
-        }
-
-        await page.evaluate(() => {
-          document.documentElement.classList.remove("dark");
-          document.documentElement.style.colorScheme = "light";
-          return document.fonts.ready;
-        });
-        await delay(SETTLE_MS);
-        await page.addStyleTag({
-          content: `
-            @page {
-              size: Letter;
-              margin: 0.5in;
-            }
-            html, body, main {
-              width: 100% !important;
-              max-width: none !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              background: white !important;
-              color-scheme: light !important;
-            }
-            article {
-              display: block !important;
-              min-height: 0 !important;
-              box-sizing: border-box !important;
-              margin: 0 !important;
-              padding: 0 !important;
-            }
-            .break-inside-avoid {
-              break-inside: avoid !important;
-              page-break-inside: avoid !important;
-              -webkit-column-break-inside: avoid !important;
-            }
-            nextjs-portal,
-            #nextjs-dev-indicator,
-            [data-next-badge-root],
-            [data-nextjs-toast],
-            [data-sonner-toaster] {
-              display: none !important;
-            }
-          `,
-        });
-        await page.emulateMedia({ media: "print", colorScheme: "light" });
-
-        const outputPath = path.join(outDir, await pdfFilenameFor(id));
-        await page.pdf({
-          path: outputPath,
-          format: "Letter",
-          printBackground: true,
-          preferCSSPageSize: true,
-          margin: { top: "0", bottom: "0", left: "0", right: "0" },
+      for (const kind of kinds) {
+        const pathSuffix =
+          kind === "cover-letter"
+            ? `/resume/${id}/cover-letter`
+            : `/resume/${id}`;
+        const outputPath = path.join(outDir, await pdfFilenameFor(id, kind));
+        await printPdfPage(browser, {
+          url: `${baseUrl}${pathSuffix}?pdf=${Date.now()}`,
+          marker: await markerFor(id, kind),
+          outputPath,
+          kind,
         });
         written.push(outputPath);
         console.log(`Wrote ${path.relative(process.cwd(), outputPath)}`);
-      } finally {
-        await page.close();
       }
     }
   } finally {

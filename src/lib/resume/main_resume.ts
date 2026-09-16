@@ -1,4 +1,4 @@
-import type { ResumeDocument } from "./types";
+import type { ResumeDocument } from "../job-listings/utils/types";
 
 export const mainResume: ResumeDocument = {
   id: "main",
@@ -8,7 +8,7 @@ export const mainResume: ResumeDocument = {
   phone: "+1 801 440 5615",
   tagline: "Senior Full-Stack Software Engineer",
   backgroundParagraphs: [
-    "Senior full-stack engineer with a B.S. in Computer Science and 15+ years delivering web products for startups and established companies. Leads end-to-end work across legacy rewrites, customer-facing platforms, APIs, and the data systems that keep them fast in production. Track record includes shipping a proposal tool that raised revenue 10% while platforms scaled with customer growth.",
+    "Senior Full-Stack Software Engineer with 15+ years of developing software for startups and established companies. Background in web development with a track record of building, shipping, and scaling products that deliver value. Strong problem solving skills and the ability to effectively communicate with clients and team members.",
   ],
   address: {
     city: "Lehi",
@@ -37,6 +37,7 @@ export const mainResume: ResumeDocument = {
         "React",
         "TypeScript",
         "Tailwind",
+        "Shadcn/ui",
         "Next.js",
         "PostgreSQL",
         "Python",
@@ -55,9 +56,9 @@ export const mainResume: ResumeDocument = {
         "WebGL",
       ],
       bulletpoints: [
-        "Designed and shipped a Next.js vehicle reconditioning platform (tasking, photo capture, real-time seller API sync) that new dealerships adopt at a rate of 10 per month.",
-        "Built a daily BigQuery and PostgreSQL analytics pipeline with partitioning, materialized views, and indexing that cut dashboard query time 75% as vehicle volume scaled.",
-        "Led the migration of core product workflows from legacy PHP to React/Next.js, reducing technical debt and speeding delivery of dealership features.",
+        "Designed and shipped a Next.js vehicle reconditioning platform (tasking, photo capture, real-time seller API sync) that allowed many new dealerships to start scaling their operations.",
+        "Built a daily BigQuery and PostgreSQL analytics pipeline with partitioning, and indexing that cut dashboard query time 75% as vehicle volume scaled.",
+        "Debugged and maintained product workflows from PHP, Python, and Go applications.",
       ],
     },
     {
@@ -83,9 +84,9 @@ export const mainResume: ResumeDocument = {
         "DevOps",
       ],
       bulletpoints: [
-        "Shipped a Next.js solar proposal tool that increased sales revenue 10% by shortening the path from design to signed contract.",
-        "Replaced polling-based support with a Node.js/Redis queue architecture, cutting customer wait times 25% with zero downtime during the cutover.",
-        "Led a PHP-to-React/Next.js rewrite of the solar appraisal platform, enabling hundreds of companies to manage and sell installation contracts on a modern stack.",
+        "Shipped a Next.js solar proposal tool that increased sales revenue 10 fold for clients by shortening the path from design to signed contract.",
+        "Built a customer service polling-based support system with a Node.js/Redis queue architecture, cutting customer wait times 25% with zero downtime during the cutover.",
+        "Migrated data from MySQL to PostgreSQL, PHP to React/Next.js, and legacy code to modern best practices. Speeding up applications significantly as we started scaling up our users.",
       ],
     },
     {
@@ -113,9 +114,9 @@ export const mainResume: ResumeDocument = {
         "Docker",
       ],
       bulletpoints: [
-        "Built a React B2B KPI dashboard that gave SMBs a single view of performance across their operations.",
-        "Integrated hundreds of backend API data sources so customers could trust one reporting surface instead of fragmented tools.",
-        "Delivered the product on Node/Express with Oracle, PostgreSQL, and Redis, and an Angular/React UI that cut report refresh time 50%.",
+        "Built a React B2B KPI dashboard that gave SMBs a view into their business performance and how to scale.",
+        "Integrated hundreds of backend API data sources: Quickbooks, stripe, MySQL, Oracle, PostgreSQL and more.",
+        "Built and maintained a Node/Express backend with PostgreSQL, Redis, and an Angular/React UI frontend dashboard.",
       ],
     },
     {
@@ -128,11 +129,11 @@ export const mainResume: ResumeDocument = {
       },
       from: new Date(2010, 11, 1),
       to: new Date(2014, 7, 10),
-      skills: ["PHP", "MySQL", "jQuery"],
+      skills: ["PHP", "MySQL", "jQuery", "CSS", "HTML", "JavaScript"],
       bulletpoints: [
-        "Built a PHP/CodeIgniter backend for shipping, finance, inventory, and custom orders that replaced fragmented store operations.",
-        "Designed MySQL schemas for orders, stock, and financial records to support accurate fulfillment and reporting.",
-        "Shipped the store-ops UI in JavaScript, jQuery, CSS, and HTML, cutting order-processing time 30% for warehouse and support teams.",
+        "Built a PHP/CodeIgniter backend for shipping, finance, inventory, and custom orders.",
+        "Designed MySQL schemas for orders, inventory, and operations of the warehouse.",
+        "Shipped many optimised SEO freindly front facing web pages in JavaScript, jQuery, CSS, and HTML.",
       ],
     },
     {
@@ -149,7 +150,7 @@ export const mainResume: ResumeDocument = {
       bulletpoints: [
         "Built PHP and C# Facebook applications that let students connect around classroom specialties and complete courses online.",
         "Implemented MySQL sharding and replication to keep data retrieval fast as the product grew, cutting query latency 75%.",
-        "Hardened performance and data access as the application scaled to 100,000 users without sacrificing uptime.",
+        "Hardened performance with indexes and query analysis as the application scaled to 100,000 users without sacrificing uptime.",
       ],
     },
     {
@@ -173,8 +174,8 @@ export const mainResume: ResumeDocument = {
       ],
       bulletpoints: [
         "Built the ColdFusion application for student records, finances, schedules, and testing used daily by staff and administration.",
-        "Modeled academic data in Oracle and optimized access paths, cutting record lookup time 40%.",
-        "Delivered the staff UI in ColdFusion, JavaScript, CSS, and HTML so academic teams could manage records without manual workarounds.",
+        "Maintained backend data in Oracle with optimizations to keep the application fast as the student body grew.",
+        "Delivered the staff UI in ColdFusion, JavaScript, CSS, and HTML so academic teams could manage records efficiently.",
       ],
     },
   ],

@@ -1,14 +1,14 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { resumeIdFromJob, type JobListing } from "./utils/from-job-listing";
+import { resumeIdFromJob, type JobListing } from "./from-job-listing";
 import {
   jobUrlsFromHtml,
   listingFromHtml,
   listingLooksLikeAJob,
-} from "./utils/listing-from-html";
-import { retailorScrapedResume } from "./utils/retailor-scraped";
-import { findScrapedById, scrapedDirFor } from "./utils/scraped-folder";
-import { processedAtIso, processedDateFolder } from "./utils/scraped-path";
+} from "./listing-from-html";
+import { retailorScrapedResume } from "./retailor-scraped";
+import { findScrapedById, scrapedDirFor } from "./scraped-folder";
+import { processedAtIso, processedDateFolder } from "./scraped-path";
 
 const BUILTIN_IDS = new Set(["main", "ai-dev", "game-dev"]);
 
@@ -144,6 +144,8 @@ export async function writeCapturedListing(options: {
     title: tailored.tagline,
     resumePath: tailored.resumePath,
     resumeHref: tailored.resumeHref,
+    coverLetterPath: tailored.coverLetterPath,
+    coverLetterHref: tailored.coverLetterHref,
   };
 }
 

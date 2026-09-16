@@ -1,6 +1,6 @@
 import { after, NextResponse } from "next/server";
-import { runResumePdf } from "@/lib/resume/utils/run-resume-pdf";
-import { resyncCapturedListing } from "@/lib/resume/write-scraped";
+import { runResumePdf } from "@/lib/job-listings/utils/run-resume-pdf";
+import { resyncCapturedListing } from "@/lib/job-listings/utils/write-scraped";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;

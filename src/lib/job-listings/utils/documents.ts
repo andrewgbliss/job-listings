@@ -1,8 +1,8 @@
-import { aiDevResume } from "../ai_dev_resume";
-import { gameDevResume } from "../game_dev_resume";
+import { aiDevResume } from "../../resume/ai_dev_resume";
+import { gameDevResume } from "../../resume/game_dev_resume";
 import { loadScrapedResumes } from "./load-scraped";
-import { mainResume } from "../main_resume";
-import type { ResumeDocument } from "../types";
+import { mainResume } from "../../resume/main_resume";
+import type { ResumeDocument } from "./types";
 
 const builtinResumeDocuments: Array<ResumeDocument> = [
   mainResume,

@@ -1,12 +1,12 @@
 /**
- * Scan job search/listing URLs and write tailored resumes from main_resume.ts.
+ * Scan job search/listing URLs and write tailored resumes + cover letters.
  *
- * Batch (reads src/lib/resume/urls_to_scrape.json):
+ * Batch (reads src/lib/job-listings/urls_to_scrape.json):
  *   npm run resume:from-url
  *
  * First page only — no pagination. Job URLs are saved under
- * src/lib/resume/scraped/YYYY_MM_DD/<domain>/urls.json, then each posting is scraped
- * into a resume module in that same folder.
+ * src/lib/job-listings/scraped/YYYY_MM_DD/<domain>/urls.json, then each posting
+ * is scraped into a resume module and cover letter in that same folder.
  *
  * Single posting:
  *   npm run resume:from-url -- https://example.com/jobs/senior-engineer --id job-123
@@ -15,21 +15,27 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { Page } from "playwright";
 import {
+  coverLetterFileName,
+  createCoverLetterFromJobListing,
+} from "../src/lib/cover-letter/from-job-listing";
+import {
   createResumeFromJobListing,
   renderTailoredResumeModule,
   resumeFileName,
   resumeIdFromJob,
   type JobListing,
-} from "../src/lib/resume/utils/from-job-listing";
-import { listingLooksLikeAJob } from "../src/lib/resume/utils/listing-from-html";
-import { findKeywordSkills, webDeveloperKeywords } from "../src/lib/resume/utils/keywords";
-import { getResumeById } from "../src/lib/resume/utils/documents";
-import { scrapedResumeImportFrom } from "../src/lib/resume/utils/scraped-folder";
-import { processedAtIso } from "../src/lib/resume/utils/scraped-path";
-import { scrapedDirFor } from "../src/lib/resume/write-scraped";
+} from "../src/lib/job-listings/utils/from-job-listing";
+import { listingLooksLikeAJob } from "../src/lib/job-listings/utils/listing-from-html";
+import { findKeywordSkills, webDeveloperKeywords } from "../src/lib/job-listings/utils/keywords";
+import { getResumeById } from "../src/lib/job-listings/utils/documents";
+import {
+  scrapedResumeImportFrom,
+  scrapedTypesImportFrom,
+} from "../src/lib/job-listings/utils/scraped-folder";
+import { processedAtIso } from "../src/lib/job-listings/utils/scraped-path";
+import { scrapedDirFor } from "../src/lib/job-listings/utils/write-scraped";
 
-const RESUME_DIR = path.join("src", "lib", "resume");
-const URLS_FILE = path.join(RESUME_DIR, "urls_to_scrape.json");
+const URLS_FILE = path.join("src", "lib", "job-listings", "urls_to_scrape.json");
 const GOTO_TIMEOUT_MS = 45_000;
 const SETTLE_MS = 2_000;
 const JOB_DELAY_MS = 1_000;
@@ -53,7 +59,8 @@ function printUsage() {
   npx tsx scripts/create-url-job-resume.ts [job-url] [options]
 
 With no URL, reads ${URLS_FILE}, collects first-page job links, saves them
-under src/lib/resume/scraped/YYYY_MM_DD/<domain>/, then writes a resume per posting.
+under src/lib/job-listings/scraped/YYYY_MM_DD/<domain>/, then writes a resume
+and cover letter per posting.
 
 Options:
   --id <slug>       Resume id (single-URL mode)
@@ -646,6 +653,7 @@ async function writeResumeFile(
     dryRun?: boolean;
     outDir: string;
     importFrom: string;
+    typesImportFrom: string;
     usedIds: Set<string>;
     register: boolean;
     searchUrl?: string;
@@ -682,6 +690,7 @@ async function writeResumeFile(
 
   const moduleSource = renderTailoredResumeModule(tailored, {
     importFrom: options.importFrom,
+    typesImportFrom: options.typesImportFrom,
   });
   if (options.dryRun) {
     process.stdout.write(moduleSource);
@@ -709,6 +718,17 @@ async function writeResumeFile(
       2,
     )}\n`,
   );
+  const coverLetter = createCoverLetterFromJobListing(listing, {
+    id: tailored.id,
+    maxJobs: options.maxJobs,
+    searchUrl,
+    processedAt: tailored.processedAt,
+  });
+  const coverLetterPath = path.join(
+    options.outDir,
+    coverLetterFileName(tailored.id),
+  );
+  await fs.writeFile(coverLetterPath, coverLetter.body);
   console.log(`Wrote ${filePath} ← ${listing.title ?? listing.url}`);
 }
 
@@ -812,6 +832,7 @@ async function main() {
             dryRun: options.dryRun,
             outDir: scrapedDirFor(seed),
             importFrom: scrapedResumeImportFrom,
+            typesImportFrom: scrapedTypesImportFrom,
             usedIds,
             register: false,
             searchUrl: seed,

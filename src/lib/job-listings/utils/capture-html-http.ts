@@ -7,7 +7,7 @@ import {
 } from "./listing-from-html";
 import { missingStrategyMessage, strategyForUrl } from "./strategy";
 import { runResumePdf } from "./run-resume-pdf";
-import { saveCapturedHtml, writeCapturedListing } from "../write-scraped";
+import { saveCapturedHtml, writeCapturedListing } from "./write-scraped";
 
 const MAX_HTML_CHARS = 8_000_000;
 const DEFAULT_PORT = 3001;

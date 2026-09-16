@@ -5,11 +5,11 @@ import {
   sortSkillsByWeight,
   webDeveloperKeywords,
 } from "./keywords";
-import { aiDevResume } from "../ai_dev_resume";
-import { gameDevResume } from "../game_dev_resume";
-import { mainResume } from "../main_resume";
+import { aiDevResume } from "../../resume/ai_dev_resume";
+import { gameDevResume } from "../../resume/game_dev_resume";
+import { mainResume } from "../../resume/main_resume";
 import { processedAtIso } from "./scraped-path";
-import type { ResumeDocument, WorkExperience } from "../types";
+import type { ResumeDocument, WorkExperience } from "./types";
 
 export type JobListing = {
   url: string;
@@ -468,10 +468,11 @@ ${bullets}
 
 export function renderTailoredResumeModule(
   resume: TailoredResume,
-  options: { importFrom?: string } = {},
+  options: { importFrom?: string; typesImportFrom?: string } = {},
 ) {
   const exportName = resumeExportName(resume.id);
   const from = options.importFrom ?? ".";
+  const typesFrom = options.typesImportFrom ?? from;
   const taglineLine =
     resume.tagline !== mainResume.tagline
       ? `\n  tagline: ${JSON.stringify(resume.tagline)},`
@@ -501,7 +502,7 @@ export function renderTailoredResumeModule(
         : "";
 
   return `import { mainResume } from "${from}/main_resume";
-import type { ResumeDocument } from "${from}/types";
+import type { ResumeDocument } from "${typesFrom}/types";
 
 /** Tailored from ${source} — ${resume.sourceUrl} */
 export const ${exportName}: ResumeDocument = {

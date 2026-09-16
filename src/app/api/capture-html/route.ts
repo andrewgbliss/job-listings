@@ -1,5 +1,5 @@
 import { after, NextResponse } from "next/server";
-import { handleCapturePayload } from "@/lib/resume/utils/capture-html-http";
+import { handleCapturePayload } from "@/lib/job-listings/utils/capture-html-http";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;

@@ -1,5 +1,5 @@
 import { mainResume } from "./main_resume";
-import type { ResumeDocument } from "./types";
+import type { ResumeDocument } from "../job-listings/utils/types";
 
 export const aiDevResume: ResumeDocument = {
   ...mainResume,

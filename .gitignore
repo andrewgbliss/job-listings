@@ -40,4 +40,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/src/lib/resume/scraped
+/src/lib/job-listings/scraped

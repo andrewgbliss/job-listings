@@ -1,9 +1,10 @@
-import { retailorAllScraped } from "../src/lib/resume/utils/retailor-scraped";
+import { retailorAllScraped } from "../src/lib/job-listings/utils/retailor-scraped";
 
 async function main() {
   const written = await retailorAllScraped();
   for (const item of written) {
     console.log(`Rewrote ${item.resumePath}`);
+    console.log(`Rewrote ${item.coverLetterPath}`);
   }
 }
 
