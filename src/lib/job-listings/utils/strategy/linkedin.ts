@@ -220,7 +220,13 @@ function stripLocationSuffix(title: string) {
 }
 
 const ROLE_AT_END =
-  /((?:Senior |Staff |Principal |Lead |Junior |Jr\.? |Technical )?(?:Full[ -]?Stack |Frontend |Front[ -]End |Backend |Back[ -]End )?(?:Software )?(?:Engineer|Developer|Architect|Consultant|Manager|Designer|Analyst|Specialist)(?:\s+(?:I{1,3}|IV|V|[2-5]))?)$/i;
+  /((?:Senior |Staff |Principal |Lead |Junior |Jr\.? |Technical )?(?:Full[ -]?Stack |Frontend |Front[ -]End |Backend |Back[ -]End |Web |Mobile |Platform |Cloud |Data |Digital |Application )?(?:Software )?(?:Engineer|Developer|Architect|Consultant|Manager|Designer|Analyst|Specialist)(?:\s+(?:I{1,3}|IV|V|[2-5]))?)$/i;
+
+const ROLE_MODIFIER_PREFIX =
+  /^(?:(?:senior|staff|principal|lead|junior|jr\.?|technical|web|mobile|software|platform|cloud|data|digital|application|product|full[ -]?stack|frontend|front[ -]end|backend|back[ -]end)(?:\s+|$))+$/i;
+
+const GENERIC_ROLE =
+  /^(engineer|developer|architect|programmer|designer|manager|lead|staff|principal|director|consultant|analyst|specialist)$/i;
 
 /** Drop a company prefix when the string ends in a role ("Acme Senior Developer"). */
 function roleWithoutEmployerPrefix(title: string): string {
@@ -230,7 +236,11 @@ function roleWithoutEmployerPrefix(title: string): string {
     return title;
   }
   const prefix = title.slice(0, Math.max(0, title.length - role.length)).trim();
-  if (prefix.length >= 2 && !ROLE_HINT.test(prefix)) {
+  if (
+    prefix.length >= 2 &&
+    !ROLE_HINT.test(prefix) &&
+    !ROLE_MODIFIER_PREFIX.test(prefix)
+  ) {
     return role;
   }
   return title;
@@ -281,6 +291,9 @@ function cleanTitle(title: string | undefined): string | undefined {
   if (!trimmed || trimmed.length < 8 || trimmed.length > 80) {
     return undefined;
   }
+  if (GENERIC_ROLE.test(trimmed)) {
+    return undefined;
+  }
   if (isChromeTitle(trimmed)) {
     return undefined;
   }
@@ -292,7 +305,7 @@ function cleanTitle(title: string | undefined): string | undefined {
 
 function titleFromSeekingPhrase(text: string): string {
   const match = text.match(
-    /\b(?:seeking|looking for|looking to hire|hiring)\s+(?:an?\s+)?(?:experienced(?:\s+and\s+highly\s+skilled)?\s+)?((?:Senior |Staff |Principal |Lead |Junior )?(?:level )?(?:Full[ -]?Stack |Frontend |Front[ -]End |Backend |Back[ -]End |Software )?(?:Engineer|Developer|Architect|Consultant|Manager))/i,
+    /\b(?:seeking|looking for|looking to hire|hiring)\s+(?:an?\s+)?(?:experienced(?:\s+and\s+highly\s+skilled)?\s+)?((?:Senior |Staff |Principal |Lead |Junior )?(?:level )?(?:Full[ -]?Stack |Frontend |Front[ -]End |Backend |Back[ -]End |Web |Mobile |Software )?(?:Engineer|Developer|Architect|Consultant|Manager))/i,
   );
   return match?.[1]?.replace(/\s+level\s+/i, " ").trim() ?? "";
 }

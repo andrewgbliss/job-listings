@@ -309,7 +309,7 @@ function roleTitleFromListing(title: string) {
 
 function roleFromPrefixedTitle(title: string) {
   const match = title.match(
-    /((?:Senior |Staff |Principal |Lead |Junior |Jr\.? |Technical |Web )?(?:Full[ -]?Stack |Frontend |Front[ -]End |Backend |Back[ -]End )?(?:Software )?(?:Engineer|Developer|Architect|Consultant|Manager|Designer|Analyst|Specialist)(?:\s+(?:I{1,3}|IV|V|[2-5]))?)$/i,
+    /((?:Senior |Staff |Principal |Lead |Junior |Jr\.? |Technical )?(?:Full[ -]?Stack |Frontend |Front[ -]End |Backend |Back[ -]End |Web |Mobile |Platform |Cloud |Data |Digital |Application )?(?:Software )?(?:Engineer|Developer|Architect|Consultant|Manager|Designer|Analyst|Specialist)(?:\s+(?:I{1,3}|IV|V|[2-5]))?)$/i,
   );
   const role = match?.[1]?.trim();
   if (!role || role.length < 8 || role.length > 80) {
@@ -318,7 +318,7 @@ function roleFromPrefixedTitle(title: string) {
   const company = title.slice(0, Math.max(0, title.length - role.length)).trim();
   if (
     company.length < 2 ||
-    /^(web|mobile|software|platform|cloud|data|digital|senior|staff|lead)$/i.test(
+    /^(web|mobile|software|platform|cloud|data|digital|application|product|senior|staff|lead|principal|junior|technical)$/i.test(
       company,
     )
   ) {

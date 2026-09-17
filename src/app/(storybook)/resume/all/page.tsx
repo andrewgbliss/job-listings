@@ -39,7 +39,7 @@ export default async function AllResumesPage() {
 
   return (
     <main className="min-h-screen w-full bg-zinc-200 px-4 py-6">
-      <div className="mx-auto max-w-5xl bg-white text-zinc-950 shadow-[0_1px_8px_rgba(0,0,0,0.08)] [--foreground:oklch(0.145_0_0)] [--muted-foreground:oklch(0.4_0_0)]">
+      <div className="mx-auto bg-white text-zinc-950 shadow-[0_1px_8px_rgba(0,0,0,0.08)] [--foreground:oklch(0.145_0_0)] [--muted-foreground:oklch(0.4_0_0)]">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 px-5 py-3 sm:px-8">
           <h1 className="text-lg font-semibold text-zinc-950">All resumes</h1>
           <div className="flex items-center gap-2">
