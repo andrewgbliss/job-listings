@@ -4,15 +4,24 @@ import {
   webDeveloperKeywords,
 } from "../keywords";
 import type { JobListing } from "../from-job-listing";
+import { dynamiteJobsStrategy } from "./dynamitejobs";
+import { goengineerStrategy } from "./goengineer";
 import { kslStrategy } from "./ksl";
 import { linkedinStrategy } from "./linkedin";
 import type { ScrapeOptions, ScrapeStrategy } from "./types";
 
 export type { ScrapeOptions, ScrapeStrategy } from "./types";
+export { dynamiteJobsStrategy } from "./dynamitejobs";
+export { goengineerStrategy } from "./goengineer";
 export { kslStrategy } from "./ksl";
 export { linkedinStrategy } from "./linkedin";
 
-const strategies: Array<ScrapeStrategy> = [linkedinStrategy, kslStrategy];
+const strategies: Array<ScrapeStrategy> = [
+  linkedinStrategy,
+  kslStrategy,
+  dynamiteJobsStrategy,
+  goengineerStrategy,
+];
 
 export function hostnameFromUrl(url: string) {
   try {
@@ -24,7 +33,7 @@ export function hostnameFromUrl(url: string) {
 
 export function missingStrategyMessage(url: string) {
   const domain = hostnameFromUrl(url);
-  return `No scrape strategy for ${domain}. Add one under src/lib/resume/utils/strategy.`;
+  return `No scrape strategy for ${domain}. Add one under src/lib/job-listings/utils/strategy.`;
 }
 
 export function strategyForUrl(url: string) {

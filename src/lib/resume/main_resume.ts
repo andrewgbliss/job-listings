@@ -8,8 +8,9 @@ export const mainResume: ResumeDocument = {
   phone: "+1 801 440 5615",
   tagline: "Senior Full-Stack Software Engineer",
   backgroundParagraphs: [
-    "Senior Full-Stack Software Engineer with 15+ years of developing software for startups and established companies. Background in web development with a track record of building, shipping, and scaling products that deliver value. Strong problem solving skills and the ability to effectively communicate with clients and team members.",
-  ],
+    // "Senior Full-Stack Software Engineer with 15+ years of developing software for startups and established companies. Background in web development with a track record of building, shipping, and scaling products that deliver value. Strong problem solving skills and the ability to effectively communicate with clients and team members.",
+    "Experienced software engineer with a track record of building and shipping products in a high-performance team. Learning to use technology to build new products is my passion. Taking ownership of the things I work on is my discipline. If you put your mind to it, you can accomplish anything." 
+    ],
   address: {
     city: "Lehi",
     state: "UT",
@@ -56,9 +57,9 @@ export const mainResume: ResumeDocument = {
         "WebGL",
       ],
       bulletpoints: [
-        "Designed and shipped a Next.js vehicle reconditioning platform (tasking, photo capture, real-time seller API sync) that allowed many new dealerships to start scaling their operations.",
-        "Built a daily BigQuery and PostgreSQL analytics pipeline with partitioning, and indexing that cut dashboard query time 75% as vehicle volume scaled.",
-        "Debugged and maintained product workflows from PHP, Python, and Go applications.",
+        "Built a Next.js vehicle reconditioning web app (tasking, photo capture, appraisals, dms sync).",
+        "Worked with large volumes of data in BigQuery, PostgreSQL, AlloyDB to write and optimize queries for daily nationwide vehicle data.",
+        "Debugged and maintained legacy products from PHP, Python, and Go applications for dms syncs and third party integrations.",
       ],
     },
     {
@@ -84,8 +85,8 @@ export const mainResume: ResumeDocument = {
         "DevOps",
       ],
       bulletpoints: [
-        "Shipped a Next.js solar proposal tool that increased sales revenue 10 fold for clients by shortening the path from design to signed contract.",
-        "Built a customer service polling-based support system with a Node.js/Redis queue architecture, cutting customer wait times 25% with zero downtime during the cutover.",
+        "Built a Next.js solar proposal contract tool that clients could use to sell warranties. The tool allowed custom branding and options to maximize conversion rates.",
+        "Built a customer service polling-based support system with a Redis queue, cutting customer wait times 75% with zero downtime.",
         "Migrated data from MySQL to PostgreSQL, PHP to React/Next.js, and legacy code to modern best practices. Speeding up applications significantly as we started scaling up our users.",
       ],
     },
@@ -114,9 +115,9 @@ export const mainResume: ResumeDocument = {
         "Docker",
       ],
       bulletpoints: [
-        "Built a React B2B KPI dashboard that gave SMBs a view into their business performance and how to scale.",
+        "Built a React B2B KPI dashboard that gave SMBs analytics for their businees. Whatever the data source we handled.",
         "Integrated hundreds of backend API data sources: Quickbooks, stripe, MySQL, Oracle, PostgreSQL and more.",
-        "Built and maintained a Node/Express backend with PostgreSQL, Redis, and an Angular/React UI frontend dashboard.",
+        "Built and maintained a Node/Express backend with PostgreSQL, Redis, and an Angular/React UI frontend dashboard. Web sockets for real-time data updates.",
       ],
     },
     {
@@ -131,9 +132,9 @@ export const mainResume: ResumeDocument = {
       to: new Date(2014, 7, 10),
       skills: ["PHP", "MySQL", "jQuery", "CSS", "HTML", "JavaScript"],
       bulletpoints: [
-        "Built a PHP/CodeIgniter backend for shipping, finance, inventory, and custom orders.",
+        "Built a PHP/CodeIgniter backend for shipping, finance, inventory, and custom orders. Made it easy for customer service to increase upsales.",
         "Designed MySQL schemas for orders, inventory, and operations of the warehouse.",
-        "Shipped many optimised SEO freindly front facing web pages in JavaScript, jQuery, CSS, and HTML.",
+        "Shipped many optimised SEO freindly front facing web pages for products in JavaScript, jQuery, CSS, and HTML.",
       ],
     },
     {
@@ -148,7 +149,7 @@ export const mainResume: ResumeDocument = {
       to: new Date(2010, 11, 1),
       skills: ["C#", ".NET", "PHP", "MySQL", "jQuery"],
       bulletpoints: [
-        "Built PHP and C# Facebook applications that let students connect around classroom specialties and complete courses online.",
+        "Built PHP, C#, Facebook applications that let students connect around classroom specialties and complete courses online.",
         "Implemented MySQL sharding and replication to keep data retrieval fast as the product grew, cutting query latency 75%.",
         "Hardened performance with indexes and query analysis as the application scaled to 100,000 users without sacrificing uptime.",
       ],
@@ -173,7 +174,7 @@ export const mainResume: ResumeDocument = {
         ".NET",
       ],
       bulletpoints: [
-        "Built the ColdFusion application for student records, finances, schedules, and testing used daily by staff and administration.",
+        "Built ColdFusion applications for student records, finances, schedules, and testing used daily by staff and administration.",
         "Maintained backend data in Oracle with optimizations to keep the application fast as the student body grew.",
         "Delivered the staff UI in ColdFusion, JavaScript, CSS, and HTML so academic teams could manage records efficiently.",
       ],
