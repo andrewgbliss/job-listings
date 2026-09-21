@@ -1,4 +1,5 @@
 import { resumeExportName } from "./from-job-listing";
+import { rewriteJobTitle } from "./rewrite-job-title";
 import { listScrapedFolder } from "./scraped-folder";
 import { isScrapedDateFolder } from "./scraped-path";
 import type { ResumeDocument } from "./types";
@@ -51,7 +52,7 @@ export async function loadScrapedResumes(): Promise<Array<ResumeDocument>> {
         resumes.push({
           ...doc,
           company: item.company,
-          jobTitle: item.title,
+          jobTitle: rewriteJobTitle(item.title) ?? item.title,
         });
       }
     } catch {

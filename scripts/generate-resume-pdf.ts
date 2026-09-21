@@ -195,6 +195,11 @@ async function markerFor(
   return doc?.backgroundParagraphs?.[0]?.slice(0, 80) || doc?.tagline;
 }
 
+function isRetryablePdfError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /Failed to load|Timeout|404|500|net::ERR_/i.test(message);
+}
+
 async function printPdfPage(
   browser: import("playwright").Browser,
   options: {
@@ -208,42 +213,57 @@ async function printPdfPage(
     viewport: { width: 816, height: 1056 },
     colorScheme: "light",
   });
+  const deadline = Date.now() + GOTO_TIMEOUT_MS;
+  let lastError: Error | undefined;
 
   try {
-    const response = await page.goto(options.url, {
-      waitUntil: "load",
-      timeout: GOTO_TIMEOUT_MS,
-    });
-    if (!response || !response.ok()) {
-      throw new Error(
-        `Failed to load ${options.url} (${response?.status() ?? "no response"})`,
-      );
+    while (Date.now() < deadline) {
+      try {
+        const remaining = Math.max(1_000, deadline - Date.now());
+        const response = await page.goto(options.url, {
+          waitUntil: "load",
+          timeout: remaining,
+        });
+        if (!response || !response.ok()) {
+          throw new Error(
+            `Failed to load ${options.url} (${response?.status() ?? "no response"})`,
+          );
+        }
+
+        if (options.marker) {
+          await page.waitForFunction(
+            (text) => document.body.innerText.includes(text),
+            options.marker,
+            { timeout: Math.min(20_000, Math.max(1_000, deadline - Date.now())) },
+          );
+        }
+
+        await page.evaluate(() => {
+          document.documentElement.classList.remove("dark");
+          document.documentElement.style.colorScheme = "light";
+          return document.fonts.ready;
+        });
+        await delay(SETTLE_MS);
+        await page.addStyleTag({ content: printCss(options.kind) });
+        await page.emulateMedia({ media: "print", colorScheme: "light" });
+
+        await page.pdf({
+          path: options.outputPath,
+          format: "Letter",
+          printBackground: true,
+          preferCSSPageSize: true,
+          margin: { top: "0", bottom: "0", left: "0", right: "0" },
+        });
+        return;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        if (!isRetryablePdfError(lastError) || Date.now() + 500 >= deadline) {
+          throw lastError;
+        }
+        await delay(500);
+      }
     }
-
-    if (options.marker) {
-      await page.waitForFunction(
-        (text) => document.body.innerText.includes(text),
-        options.marker,
-        { timeout: 20_000 },
-      );
-    }
-
-    await page.evaluate(() => {
-      document.documentElement.classList.remove("dark");
-      document.documentElement.style.colorScheme = "light";
-      return document.fonts.ready;
-    });
-    await delay(SETTLE_MS);
-    await page.addStyleTag({ content: printCss(options.kind) });
-    await page.emulateMedia({ media: "print", colorScheme: "light" });
-
-    await page.pdf({
-      path: options.outputPath,
-      format: "Letter",
-      printBackground: true,
-      preferCSSPageSize: true,
-      margin: { top: "0", bottom: "0", left: "0", right: "0" },
-    });
+    throw lastError ?? new Error(`Failed to load ${options.url}`);
   } finally {
     await page.close();
   }

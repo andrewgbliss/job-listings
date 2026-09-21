@@ -5,6 +5,7 @@ import {
   coverLetterPdfHref,
   formatProcessedAt,
   isBuiltinResume,
+  processedAtTime,
   resumeDisplayName,
   resumePdfFilename,
   resumePdfHref,
@@ -35,7 +36,9 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AllResumesPage() {
-  const resumeDocuments = await getResumeDocuments();
+  const resumeDocuments = [...(await getResumeDocuments())].sort(
+    (a, b) => processedAtTime(b.processedAt) - processedAtTime(a.processedAt),
+  );
 
   return (
     <main className="min-h-screen w-full bg-zinc-200 px-4 py-6">

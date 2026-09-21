@@ -8,6 +8,7 @@ import {
 import { aiDevResume } from "../../resume/ai_dev_resume";
 import { gameDevResume } from "../../resume/game_dev_resume";
 import { mainResume } from "../../resume/main_resume";
+import { compactDashedRoleTitle, rewriteJobTitle } from "./rewrite-job-title";
 import { processedAtIso } from "./scraped-path";
 import type { ResumeDocument, WorkExperience } from "./types";
 
@@ -290,15 +291,15 @@ function stripListingTitleChrome(title: string) {
 }
 
 function roleTitleFromListing(title: string) {
+  const compacted = compactDashedRoleTitle(title);
+  if (compacted !== title) {
+    return compacted;
+  }
   const parts = title
     .split(/\s+[-–—]\s+/)
     .map((part) => part.trim())
     .filter(Boolean);
   if (parts.length >= 2) {
-    const tail = parts.slice(-2).join(" - ");
-    if (ROLE_TAIL.test(tail) && tail.length <= 80 && !isChromeTitle(tail)) {
-      return tail;
-    }
     const last = parts.at(-1) ?? "";
     if (ROLE_TAIL.test(last) && last.length >= 8 && last.length <= 80) {
       return last;
@@ -309,7 +310,7 @@ function roleTitleFromListing(title: string) {
 
 function roleFromPrefixedTitle(title: string) {
   const match = title.match(
-    /((?:Senior |Staff |Principal |Lead |Junior |Jr\.? |Technical )?(?:Full[ -]?Stack |Frontend |Front[ -]End |Backend |Back[ -]End |Web |Mobile |Platform |Cloud |Data |Digital |Application )?(?:Software )?(?:Engineer|Developer|Architect|Consultant|Manager|Designer|Analyst|Specialist)(?:\s+(?:I{1,3}|IV|V|[2-5]))?)$/i,
+    /((?:Senior |Staff |Principal |Lead |Junior |Jr\.? |Sr\.? |Technical )?(?:Full[ -]?Stack |Frontend |Front[ -]End |Backend |Back[ -]End |Web |Mobile |Platform |Cloud |Data |Digital |Application |UX )?(?:Software )?(?:Engineer|Developer|Architect|Consultant|Manager|Designer|Analyst|Specialist)(?:\s+(?:IV|V|I{1,3}|[2-5]))?)$/i,
   );
   const role = match?.[1]?.trim();
   if (!role || role.length < 8 || role.length > 80) {
@@ -318,7 +319,7 @@ function roleFromPrefixedTitle(title: string) {
   const company = title.slice(0, Math.max(0, title.length - role.length)).trim();
   if (
     company.length < 2 ||
-    /^(web|mobile|software|platform|cloud|data|digital|application|product|senior|staff|lead|principal|junior|technical)$/i.test(
+    /^(web|mobile|software|platform|cloud|data|digital|application|product|senior|sr\.?|staff|lead|principal|junior|jr\.?|technical)$/i.test(
       company,
     )
   ) {
@@ -328,7 +329,9 @@ function roleFromPrefixedTitle(title: string) {
 }
 
 function taglineFromJob(job: JobListing) {
-  const title = stripListingTitleChrome(job.title ?? "");
+  const title = stripListingTitleChrome(
+    rewriteJobTitle(job.title) ?? job.title ?? "",
+  );
   if (!title || isChromeTitle(title) || title.length > 80) {
     return mainResume.tagline;
   }
@@ -344,7 +347,10 @@ function taglineFromJob(job: JobListing) {
 
 function tailorSummary(tagline: string) {
   return mainResume.backgroundParagraphs.map((paragraph, index) => {
-    if (index !== 0 || tagline === mainResume.tagline) {
+    if (index !== 0) {
+      return paragraph;
+    }
+    if (paragraph.startsWith(`${tagline} with `)) {
       return paragraph;
     }
     if (!/^(.+?) with /.test(paragraph)) {
@@ -380,6 +386,7 @@ export function createResumeFromJobListing(
   job: JobListing,
   options: CreateResumeFromJobOptions = {},
 ): TailoredResume {
+  job = { ...job, title: rewriteJobTitle(job.title) };
   const language = extractListingLanguage(job);
   const id = options.id || resumeIdFromJob(job);
   const byCompany = new Map<string, WorkExperience>();

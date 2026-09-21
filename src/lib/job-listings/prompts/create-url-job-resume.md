@@ -2,7 +2,7 @@
 
 POST the current page's URL and HTML to a local-only capture server. It writes the HTML under `src/lib/job-listings/scraped/YYYY_MM_DD/<domain>/`, scrapes it for one job listing, and generates a tailored resume from `main_resume.ts` plus a cover letter from `src/lib/cover-letter/main_cover_letter.md`.
 
-The generator does not invent jobs. It keeps the full work history and bullet order from `main_resume.ts`. Tailoring matches listing skills, sets the tagline from the job title, swaps that title into the start of the summary, and when a bullet mentions Next.js but the listing does not, replaces Next.js with the listing's highest-weighted skill. It does not reorder work-experience skills.
+The generator does not invent jobs. It keeps the full work history and bullet order from `main_resume.ts`. Tailoring matches listing skills, sets the tagline from the job title, swaps that title into the start of the summary, and when a bullet mentions Next.js but the listing does not, replaces Next.js with the listing's highest-weighted skill. It does not reorder work-experience skills. Rewrite the listing title `Senior Engineer, Fullstack` to `Senior Full-Stack Engineer` for any job.
 
 The cover letter fills `{{POSITION}}` from the listing title, names the company when known, and remaps the JavaScript/React skill pair to listing-matched skills from the resume.
 

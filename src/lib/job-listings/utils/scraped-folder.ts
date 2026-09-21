@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { rewriteJobTitle } from "./rewrite-job-title";
 import {
   defaultScrapedFolderPath,
   isScrapedDateFolder,
@@ -88,7 +89,10 @@ async function readListingMeta(filePath: string) {
       sourceUrl: typeof record.url === "string" ? record.url : undefined,
       searchUrl:
         typeof record.searchUrl === "string" ? record.searchUrl : undefined,
-      title: typeof record.title === "string" ? record.title : undefined,
+      title:
+        typeof record.title === "string"
+          ? rewriteJobTitle(record.title)
+          : undefined,
       company: typeof record.company === "string" ? record.company : undefined,
       processedAt:
         typeof record.processedAt === "string" ? record.processedAt : undefined,

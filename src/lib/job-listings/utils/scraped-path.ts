@@ -40,6 +40,18 @@ const processedAtFormatter = new Intl.DateTimeFormat("en-US", {
   minute: "2-digit",
 });
 
+export function processedAtTime(value?: string) {
+  if (!value) {
+    return 0;
+  }
+  const folder = value.match(DATE_FOLDER);
+  if (folder) {
+    return Date.parse(`${folder[1]}-${folder[2]}-${folder[3]}T00:00:00`);
+  }
+  const time = Date.parse(value);
+  return Number.isNaN(time) ? 0 : time;
+}
+
 export function formatProcessedAt(value?: string) {
   if (!value) {
     return "—";

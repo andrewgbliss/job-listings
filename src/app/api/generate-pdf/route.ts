@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { getResumeById } from "@/lib/job-listings/utils/documents";
 import { runResumePdf } from "@/lib/job-listings/utils/run-resume-pdf";
 
 export const runtime = "nodejs";
@@ -33,14 +32,6 @@ export async function POST(request: Request) {
 
   if (!id) {
     return NextResponse.json({ error: "id is required" }, { status: 400 });
-  }
-
-  const doc = await getResumeById(id);
-  if (!doc) {
-    return NextResponse.json(
-      { error: `Unknown resume id: ${id}` },
-      { status: 404 },
-    );
   }
 
   try {

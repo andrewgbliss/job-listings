@@ -4,6 +4,7 @@ import {
   webDeveloperKeywords,
 } from "../keywords";
 import type { JobListing } from "../from-job-listing";
+import { rewriteJobTitle } from "../rewrite-job-title";
 import { dynamiteJobsStrategy } from "./dynamitejobs";
 import { goengineerStrategy } from "./goengineer";
 import { kslStrategy } from "./ksl";
@@ -52,6 +53,7 @@ export function listingFromHtml(
   }
   const keywords = options.keywords ?? webDeveloperKeywords;
   const listing = strategy.listingFromHtml(html, pageUrl, searchUrl);
+  listing.title = rewriteJobTitle(listing.title, html);
   listing.skills = sortSkillsByWeight(
     findKeywordSkills(
       [listing.title, listing.description, listing.skills.join(" ")]

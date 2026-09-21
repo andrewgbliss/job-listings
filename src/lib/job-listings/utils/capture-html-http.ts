@@ -126,7 +126,7 @@ async function runCapture(input: CaptureInput) {
     listing,
     discoveredUrls: jobUrlsFromHtml(html, url),
   });
-  await runResumePdf(written.id).catch((error: unknown) => {
+  await runResumePdf(written.id, { detach: true }).catch((error: unknown) => {
     console.error(
       "Capture PDF failed",
       error instanceof Error ? error.message : error,

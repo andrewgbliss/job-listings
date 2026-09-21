@@ -11,6 +11,7 @@ import {
   type JobListing,
 } from "./from-job-listing";
 import { listingFromHtml } from "./listing-from-html";
+import { rewriteJobTitle } from "./rewrite-job-title";
 import {
   findScrapedById,
   listScrapedFolder,
@@ -38,7 +39,7 @@ export function parseJobListingJson(raw: unknown): JobListing | undefined {
     : [];
   return {
     url,
-    title: asString(record.title),
+    title: rewriteJobTitle(asString(record.title)),
     company: asString(record.company),
     description: asString(record.description),
     skills,

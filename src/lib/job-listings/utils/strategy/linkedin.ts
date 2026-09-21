@@ -1,5 +1,6 @@
 import type { JobListing } from "../from-job-listing";
 import { escapeRegExp, stripHtml } from "../html";
+import { rewriteJobTitle, compactDashedRoleTitle } from "../rewrite-job-title";
 import type { ScrapeStrategy } from "./types";
 
 const DESCRIPTION_LIMIT = 20_000;
@@ -220,10 +221,10 @@ function stripLocationSuffix(title: string) {
 }
 
 const ROLE_AT_END =
-  /((?:Senior |Staff |Principal |Lead |Junior |Jr\.? |Technical )?(?:Full[ -]?Stack |Frontend |Front[ -]End |Backend |Back[ -]End |Web |Mobile |Platform |Cloud |Data |Digital |Application )?(?:Software )?(?:Engineer|Developer|Architect|Consultant|Manager|Designer|Analyst|Specialist)(?:\s+(?:I{1,3}|IV|V|[2-5]))?)$/i;
+  /((?:Senior |Staff |Principal |Lead |Junior |Jr\.? |Sr\.? |Technical )?(?:Full[ -]?Stack |Frontend |Front[ -]End |Backend |Back[ -]End |Web |Mobile |Platform |Cloud |Data |Digital |Application )?(?:Software )?(?:Engineer|Developer|Architect|Consultant|Manager|Designer|Analyst|Specialist)(?:\s+(?:I{1,3}|IV|V|[2-5]))?)$/i;
 
 const ROLE_MODIFIER_PREFIX =
-  /^(?:(?:senior|staff|principal|lead|junior|jr\.?|technical|web|mobile|software|platform|cloud|data|digital|application|product|full[ -]?stack|frontend|front[ -]end|backend|back[ -]end)(?:\s+|$))+$/i;
+  /^(?:(?:senior|staff|principal|lead|junior|jr\.?|sr\.?|technical|web|mobile|software|platform|cloud|data|digital|application|product|full[ -]?stack|frontend|front[ -]end|backend|back[ -]end)(?:\s+|$))+$/i;
 
 const GENERIC_ROLE =
   /^(engineer|developer|architect|programmer|designer|manager|lead|staff|principal|director|consultant|analyst|specialist)$/i;
@@ -247,29 +248,9 @@ function roleWithoutEmployerPrefix(title: string): string {
 }
 
 function compactRoleTitle(title: string): string {
-  const dashed = title
-    .split(/\s+[-–—]\s+/)
-    .map((part) => part.trim())
-    .filter(Boolean);
-  if (dashed.length >= 2) {
-    const tail2 = dashed.slice(-2).join(" - ");
-    if (
-      tail2.length >= 8 &&
-      tail2.length <= 80 &&
-      ROLE_HINT.test(tail2) &&
-      !isChromeTitle(tail2)
-    ) {
-      return tail2;
-    }
-    const last = dashed.at(-1) ?? "";
-    if (
-      last.length >= 8 &&
-      last.length <= 80 &&
-      ROLE_HINT.test(last) &&
-      !isChromeTitle(last)
-    ) {
-      return last;
-    }
+  const compacted = compactDashedRoleTitle(title);
+  if (compacted !== title) {
+    return compacted;
   }
   return roleWithoutEmployerPrefix(title);
 }
@@ -280,9 +261,15 @@ function cleanTitle(title: string | undefined): string | undefined {
       .replace(/\s*\|\s*LinkedIn\s*$/i, "")
       .split("|")[0]
       .replace(/\btry premium for \$?0\b/gi, " ")
-      .replace(/\s*\([^)]*\)\s*/g, " ")
       .replace(/\s+/g, " ")
       .trim(),
+  );
+  if (!trimmed) {
+    return undefined;
+  }
+  trimmed = rewriteJobTitle(trimmed) ?? trimmed;
+  trimmed = stripLocationSuffix(
+    trimmed.replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim(),
   );
   if (!trimmed) {
     return undefined;

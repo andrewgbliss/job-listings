@@ -30,6 +30,7 @@ export const allResumesHref = "/resume/all" as const;
 export {
   defaultScrapedFolderPath,
   formatProcessedAt,
+  processedAtTime,
   scrapedFolderHref,
 } from "../job-listings/utils/scraped-path";
 
