@@ -1,3 +1,4 @@
+import { searchHref } from "@/lib/job-listings/utils/search/types";
 import { allResumesHref, coverLetterPdfFilename, coverLetterPdfHref, defaultScrapedFolderPath, formatProcessedAt, resume as defaultResume, resumePdfFilename, resumePdfHref, scrapedFolderHref } from "@/lib/resume";
 import { listScrapedFolder } from "@/lib/job-listings/utils/scraped-folder";
 import { website } from "@/lib/website";
@@ -25,6 +26,24 @@ export const metadata: Metadata = {
 
 function displayUrl(href: string) {
   return href.replace(/^https?:\/\//, "").replace(/^www\./, "");
+}
+
+function websiteFrom(domain: string, sourceUrl?: string) {
+  if (sourceUrl) {
+    try {
+      const href = new URL(sourceUrl);
+      return {
+        label: href.hostname.replace(/^www\./, ""),
+        href: href.origin,
+      };
+    } catch {
+      // Fall through to the folder domain.
+    }
+  }
+  return {
+    label: domain,
+    href: domain.includes(".") ? `https://${domain}` : undefined,
+  };
 }
 
 function fileLabels(item: {
@@ -60,6 +79,12 @@ export default async function ScrapedFolderPage() {
           </div>
           <div className="flex items-center gap-2">
             <Link
+              href={searchHref}
+              className="inline-flex items-center gap-2 border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-50"
+            >
+              Search
+            </Link>
+            <Link
               href={allResumesHref}
               className="inline-flex items-center gap-2 border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-50"
             >
@@ -87,7 +112,7 @@ export default async function ScrapedFolderPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[11%] text-zinc-700">Date</TableHead>
-                  <TableHead className="w-[11%] text-zinc-700">Domain</TableHead>
+                  <TableHead className="w-[11%] text-zinc-700">Website</TableHead>
                   <TableHead className="w-[13%] text-zinc-700">Scrape</TableHead>
                   <TableHead className="w-[13%] text-zinc-700">Company</TableHead>
                   <TableHead className="w-[13%] text-zinc-700">Title</TableHead>
@@ -102,6 +127,7 @@ export default async function ScrapedFolderPage() {
                   const listing = scrape.sourceUrl
                     ? displayUrl(scrape.sourceUrl)
                     : undefined;
+                  const website = websiteFrom(scrape.domain, scrape.sourceUrl);
                   const pdfSource = {
                     name: defaultResume.name,
                     company: scrape.company,
@@ -113,10 +139,21 @@ export default async function ScrapedFolderPage() {
                         {formatProcessedAt(scrape.processedAt ?? scrape.dateFolder)}
                       </TableCell>
                       <TableCell
-                        title={scrape.domain}
+                        title={website.label}
                         className="max-w-0 truncate text-zinc-700"
                       >
-                        {scrape.domain}
+                        {website.href ? (
+                          <a
+                            href={website.href}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="hover:text-zinc-950 hover:underline"
+                          >
+                            {website.label}
+                          </a>
+                        ) : (
+                          website.label
+                        )}
                       </TableCell>
                       <TableCell className="max-w-0 font-medium text-zinc-950">
                         {scrape.resumeHref ? (

@@ -7,6 +7,7 @@ import type { JobListing } from "../from-job-listing";
 import { rewriteJobTitle } from "../rewrite-job-title";
 import { dynamiteJobsStrategy } from "./dynamitejobs";
 import { goengineerStrategy } from "./goengineer";
+import { indeedStrategy } from "./indeed";
 import { kslStrategy } from "./ksl";
 import { linkedinStrategy } from "./linkedin";
 import type { ScrapeOptions, ScrapeStrategy } from "./types";
@@ -14,11 +15,13 @@ import type { ScrapeOptions, ScrapeStrategy } from "./types";
 export type { ScrapeOptions, ScrapeStrategy } from "./types";
 export { dynamiteJobsStrategy } from "./dynamitejobs";
 export { goengineerStrategy } from "./goengineer";
+export { indeedStrategy } from "./indeed";
 export { kslStrategy } from "./ksl";
 export { linkedinStrategy } from "./linkedin";
 
 const strategies: Array<ScrapeStrategy> = [
   linkedinStrategy,
+  indeedStrategy,
   kslStrategy,
   dynamiteJobsStrategy,
   goengineerStrategy,
