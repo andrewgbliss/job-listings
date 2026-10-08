@@ -57,13 +57,17 @@ function withoutParentheticals(title: string) {
     .trim();
 }
 
+const ROLE_PREFIX =
+  /^(?:Senior|Staff|Principal|Lead|Junior|Jr\.?|Sr\.?|Technical|Full[ -]?Stack|Frontend|Front[ -]End|Backend|Back[ -]End|Web|Mobile|Platform|Cloud|Data|Digital|Application|UX|Software)$/i;
+
 function recoverRoleFromSource(title: string, sourceText: string) {
   const pattern = new RegExp(
     ROLE_SEGMENT.source.replace(/^\^/, "").replace(/\$$/, ""),
     "gi",
   );
   const titleLower = title.toLowerCase();
-  let best: string | undefined;
+  let exact = false;
+  const longer = new Map<string, string>();
   for (const match of sourceText.matchAll(pattern)) {
     const candidate = compactDashedRoleTitle(match[0]);
     if (!isRoleSegment(candidate) || candidate.length > 80) {
@@ -71,7 +75,7 @@ function recoverRoleFromSource(title: string, sourceText: string) {
     }
     const lower = candidate.toLowerCase();
     if (lower === titleLower) {
-      best ??= candidate;
+      exact = true;
       continue;
     }
     if (!lower.endsWith(titleLower)) {
@@ -80,19 +84,17 @@ function recoverRoleFromSource(title: string, sourceText: string) {
     const prefix = candidate
       .slice(0, Math.max(0, candidate.length - title.length))
       .trim();
-    if (
-      !prefix ||
-      !/^(?:Senior|Staff|Principal|Lead|Junior|Jr\.?|Sr\.?|Technical|Full[ -]?Stack|Frontend|Front[ -]End|Backend|Back[ -]End|Web|Mobile|Platform|Cloud|Data|Digital|Application|UX|Software)$/i.test(
-        prefix,
-      )
-    ) {
+    if (!prefix || !ROLE_PREFIX.test(prefix)) {
       continue;
     }
-    if (!best || candidate.length > best.length) {
-      best = candidate;
-    }
+    longer.set(lower, candidate);
   }
-  return best;
+  // A search page lists many roles. Keep this posting's title when it already
+  // appears on its own; only fill in a missing prefix when the page has one.
+  if (exact || longer.size !== 1) {
+    return undefined;
+  }
+  return longer.values().next().value;
 }
 
 export function rewriteJobTitle(

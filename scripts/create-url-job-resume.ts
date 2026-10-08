@@ -625,9 +625,7 @@ async function extractListingFromPage(
     employerNames,
   );
   listing.skills = findKeywordSkills(
-    [listing.title, listing.description, listing.skills.join(" ")]
-      .filter(Boolean)
-      .join(" "),
+    [listing.title, listing.description].filter(Boolean).join(" "),
     webDeveloperKeywords,
   );
   return listing;

@@ -1,5 +1,6 @@
 import {
   findKeywordSkills,
+  skillHitsKeyword,
   sortSkillsByWeight,
   webDeveloperKeywords,
 } from "../keywords";
@@ -57,14 +58,18 @@ export function listingFromHtml(
   const keywords = options.keywords ?? webDeveloperKeywords;
   const listing = strategy.listingFromHtml(html, pageUrl, searchUrl);
   listing.title = rewriteJobTitle(listing.title, html);
-  listing.skills = sortSkillsByWeight(
-    findKeywordSkills(
-      [listing.title, listing.description, listing.skills.join(" ")]
-        .filter(Boolean)
-        .join(" "),
-      keywords,
-    ),
-  );
+  const prose = [listing.title, listing.description].filter(Boolean).join(" ");
+  const found = findKeywordSkills(prose, keywords);
+  const explicit = listing.skills.filter((skill) => {
+    const key = skill.trim().toLowerCase();
+    const known = keywords.skills.some(
+      (item) =>
+        item.name.toLowerCase() === key ||
+        item.aliases.some((alias) => alias.toLowerCase() === key),
+    );
+    return !known || skillHitsKeyword(skill, prose, keywords);
+  });
+  listing.skills = sortSkillsByWeight([...new Set([...explicit, ...found])]);
   return listing;
 }
 

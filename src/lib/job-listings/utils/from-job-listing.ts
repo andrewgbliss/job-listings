@@ -86,14 +86,18 @@ export function resumeExportName(id: string) {
   return `${safe}Resume`;
 }
 
+function jobSourceText(job: JobListing) {
+  return [job.title, job.description, job.skills.join(" ")].filter(Boolean).join(" ");
+}
+
 function jobSearchText(job: JobListing) {
-  return normalize(
-    [job.title, job.description, job.skills.join(" ")].filter(Boolean).join(" "),
-  );
+  return normalize(jobSourceText(job));
 }
 
 function skillHitsJob(skill: string, haystack: string) {
-  return skillHitsKeyword(skill, haystack, webDeveloperKeywords);
+  return skillHitsKeyword(skill, haystack, webDeveloperKeywords, {
+    ignoreCase: true,
+  });
 }
 
 type ListingLanguage = {
@@ -111,8 +115,21 @@ function ownedResumeSkills() {
   ];
 }
 
+function listingProse(job: JobListing) {
+  return [job.title, job.description].filter(Boolean).join(" ");
+}
+
+function isPackSkill(skill: string) {
+  const key = normalize(skill);
+  return webDeveloperKeywords.skills.some(
+    (item) =>
+      normalize(item.name) === key ||
+      item.aliases.some((alias) => normalize(alias) === key),
+  );
+}
+
 function extractListingLanguage(job: JobListing): ListingLanguage {
-  const haystack = jobSearchText(job);
+  const source = listingProse(job);
   const skills: Array<string> = [];
   const add = (skill: string) => {
     const name = skill.trim();
@@ -122,17 +139,23 @@ function extractListingLanguage(job: JobListing): ListingLanguage {
     skills.push(name);
   };
   for (const skill of job.skills) {
+    if (
+      isPackSkill(skill) &&
+      !skillHitsKeyword(skill, source, webDeveloperKeywords)
+    ) {
+      continue;
+    }
     add(skill);
   }
-  for (const skill of findKeywordSkills(haystack, webDeveloperKeywords)) {
+  for (const skill of findKeywordSkills(source, webDeveloperKeywords)) {
     add(skill);
   }
   for (const skill of ownedResumeSkills()) {
-    if (skillHitsJob(skill, haystack)) {
+    if (skillHitsKeyword(skill, source, webDeveloperKeywords)) {
       add(skill);
     }
   }
-  const phrases = findKeywordPhrases(haystack, webDeveloperKeywords);
+  const phrases = findKeywordPhrases(source, webDeveloperKeywords);
   return { skills, phrases };
 }
 

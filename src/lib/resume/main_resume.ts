@@ -42,6 +42,7 @@ export const mainResume: ResumeDocument = {
         "Next.js",
         "PostgreSQL",
         "Python",
+        "Ruby",
         "Go",
         "Docker",
         "Kubernetes",
@@ -162,8 +163,8 @@ export const mainResume: ResumeDocument = {
         postalCode: "84101",
         country: "United States",
       },
-      from: new Date(2002, 3, 2),
-      to: new Date(2006, 9, 1),
+      from: new Date(2006, 3, 2),
+      to: new Date(2009, 9, 5),
       skills: [
         "ColdFusion",
         "Oracle",
